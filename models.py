@@ -8,58 +8,53 @@ from sqlalchemy.orm import relationship, scoped_session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.session import sessionmaker, object_session
 from sqlalchemy.schema import ForeignKey
+from sqlalchemy.sql.expression import or_
 from sqlalchemy.types import String, Boolean, DateTime
 import datetime
 import logging
 import os
 # from passlib.hash import sha256_crypt
 
-#if os.environ.get('TEST_RUN', "False") == "True":
+# if os.environ.get('TEST_RUN', "False") == "True":
 #    engine = create_engine('mysql://anthony:password@127.0.0.1:3306/test_assassins', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
-#engine = create_engine('mysql://b2970bc5c51ab9:96b6d5d8@us-cdbr-east-02.cleardb.com/heroku_ee20403d72a96df', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
-engine = create_engine('mysql://anthony:password@127.0.0.1:3306/eashlhistory', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
+# engine = create_engine('mysql://b2970bc5c51ab9:96b6d5d8@us-cdbr-east-02.cleardb.com/heroku_ee20403d72a96df', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
+engine = create_engine('mysql://anthony:password@127.0.0.1:3306/eashlhistory2', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
 Base = declarative_base(bind=engine)
 sm = sessionmaker(bind=engine, autoflush=True, autocommit=False, expire_on_commit=False)
 Session = scoped_session(sm)
-logging.basicConfig()
+logging.basicConfig(level=logging.DEBUG)
 
 class User(Base):
     __tablename__ = 'user'
-    id = Column(u'id', INTEGER(), primary_key=True, nullable=False)
-    username = Column(u'username', VARCHAR(length=255), nullable=False)
+    id = Column(Integer, primary_key=True, nullable=False)
+    username = Column(VARCHAR(length=255), nullable=False)
     
     def __init__(self, username):
         self.username = username
-
-class Club(Base):
-    __tablename__ = 'club'
-    id = Column(INTEGER(), primary_key=True, nullable=False)
-    ea_id = Column(VARCHAR(length=255), nullable=False)
-    abbr = Column(VARCHAR(length=3), nullable=False)
-    name = Column(VARCHAR(length=255), nullable=False)
-    logo = Column(VARCHAR(length=255), nullable=False)
-    
-    def __init__(self, ea_id, name, abbr, logo='http://i.imgur.com/rqJBJQy.png'):
-        self.ea_id = ea_id
-        self.name = name
-        self.abbr = abbr
-        self.logo = logo
-    
-    def update_logo(self, logo=None):
-        if logo is not None:            
-            self.logo = logo
+        
+    games = relationship('UserGame', primaryjoin='UserGame.user_id==User.id')
 
 class Game(Base):
     __tablename__ = 'game'
     id = Column(INTEGER(), primary_key=True)
     ea_id = Column(VARCHAR(255), primary_key=True)
-    time = Column(VARCHAR(10), primary_key=True) # format is ##:## [AM, PM]
+    time = Column(VARCHAR(10), primary_key=True)  # format is ##:## [AM, PM]
     ea_page_timestamp = Column(VARCHAR(255))
     datetime = Column(DateTime)
     club_1_id = Column(Integer, ForeignKey('club.id'), primary_key=True)
     club_1_score = Column(INTEGER())
+    club_1_div_rank = Column(INTEGER())
+    club_1_division = Column(VARCHAR(10))
+    club_1_members = Column(INTEGER())
+    club_1_overall_rank = Column(INTEGER())
+    club_1_record = Column(VARCHAR(30))
     club_2_id = Column(Integer, ForeignKey('club.id'), primary_key=True)
     club_2_score = Column(INTEGER())        
+    club_2_div_rank = Column(INTEGER())
+    club_2_division = Column(VARCHAR(10))
+    club_2_members = Column(INTEGER())
+    club_2_overall_rank = Column(INTEGER())
+    club_2_record = Column(VARCHAR(30))
     
 
     def __init__(self, ea_id, club_1_id, club_1_score, club_2_id, club_2_score, time, ea_page_timestamp):
@@ -70,6 +65,71 @@ class Game(Base):
         self.club_2_score = club_2_score
         self.time = time
         self.ea_page_timestamp = ea_page_timestamp
+        
+    def update_rank_info(self, rank_info_list):
+        self.club_1_div_rank = rank_info_list[0]['div_rank']
+        self.club_1_division = rank_info_list[0]['division']
+        self.club_1_members = rank_info_list[0]['members']
+        self.club_1_overall_rank = rank_info_list[0]['overall_rank']
+        self.club_1_record = rank_info_list[0]['record']
+        self.club_2_div_rank = rank_info_list[1]['div_rank']
+        self.club_2_division = rank_info_list[1]['division']
+        self.club_2_members = rank_info_list[1]['members']
+        self.club_2_overall_rank = rank_info_list[1]['overall_rank']
+        self.club_2_record = rank_info_list[1]['record']
+        s = object_session(self)
+        s.add(self)
+        s.flush()
+        s.commit()
+    
+    def get_rank_info(self, club_id):
+        ret_dict = {}
+        if club_id == self.club_1_id:
+            ret_dict = dict(div_rank=self.club_1_div_rank, division=self.club_1_division, members=self.club_1_members,\
+                            overall_rank=self.club_1_overall_rank, record=self.club_1_record)
+        elif club_id == self.club_2_id:
+            ret_dict = dict(div_rank=self.club_2_div_rank, division=self.club_2_division, members=self.club_2_members,\
+                            overall_rank=self.club_2_overall_rank, record=self.club_2_record)
+        return ret_dict
+        
+
+class Club(Base):
+    __tablename__ = 'club'
+    id = Column(INTEGER(), primary_key=True, nullable=False)
+    ea_id = Column(VARCHAR(length=255), nullable=False)
+    abbr = Column(VARCHAR(length=3), nullable=False)
+    name = Column(VARCHAR(length=255), nullable=False)
+    logo = Column(VARCHAR(length=255), nullable=False)
+    last_rank_fetch = Column(DateTime, default=None, nullable=True)
+    
+    def __init__(self, ea_id, name, abbr, logo='http://i.imgur.com/rqJBJQy.png'):
+        self.ea_id = ea_id
+        self.name = name
+        self.abbr = abbr
+        self.logo = logo
+    
+    def should_update(self, timestamp=datetime.datetime.now):
+        if self.last_rank_fetch is None:
+            return True
+        return (timestamp - datetime.timedelta(minutes = 20)) > self.last_rank_fetch
+    
+    def get_games(self):
+        return object_session(self).query(Game).filter_by(or_(Game.club_1_id == self.id, Game.club_2_id == self.id)).all()
+
+    def most_recent_rank_info(self):
+        game = object_session(self).query(Game).filter_by(or_(Game.club_1_id == self.id, Game.club_2_id == self.id)).order_by(Game.ea_id).limit(2)
+        pass
+        
+    def update_logo(self, logo=None):
+        if logo is not None:            
+            self.logo = logo
+            
+    def update_last_rank_fetch(self, dt):
+        self.last_rank_fetch = dt
+        s = object_session(self)
+        s.add(self)
+        s.flush()
+        s.commit()
                
 
 class UserGame(Base):
