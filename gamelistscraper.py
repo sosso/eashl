@@ -117,6 +117,8 @@ def get_rank_info(club):
             url = 'http://www.easportsworld.com/en_US/clubs/401A0001/%s/overview' % str(club.ea_id)
             soup = BeautifulSoup(requests.get(url).content)
             stats = soup.find('table', {'class':'plain full-width nowrap less-padding no-margin'})
+            if stats is None:
+                return dict(division='', record='', div_rank=-1, overall_rank=-1, members=-1)
             tds = stats.find_all('td')
             ret_dict = {}
             ret_dict['division'] = tds[0].contents[1].text
@@ -135,7 +137,7 @@ def import_games(ea_club_id, days_from_start=0, days_from_end=0):
     logger = logging.getLogger('import')
     logger.addFilter(NoParsingFilter())
     logger.info('Starting import for %s from day %d and going %d days' % (ea_club_id, days_from_start, days_from_end))
-    for i in range(0 + days_from_start, 178-days_from_end):
+    for i in range(0 + days_from_start, 200-days_from_end):
         logger.debug('pass %d of %d' % (i-days_from_start, 178-days_from_end-days_from_start))
         dt = datetime.datetime.fromtimestamp(earliest_timestamp) + datetime.timedelta(days=i, hours=1)
         dt_stamp = str(time.mktime(dt.timetuple()))[:-2]#trim '.0' from end
@@ -185,5 +187,5 @@ def import_games(ea_club_id, days_from_start=0, days_from_end=0):
                     session.commit()
             else:
                 logger.debug('Game already processed')
-import_games('273', 10)
+import_games('273', 30)
 #get_club_stats('http://www.easportsworld.com/en_US/clubs/401A0001/273/overview')

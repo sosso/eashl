@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship, scoped_session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.session import sessionmaker, object_session
 from sqlalchemy.schema import ForeignKey
-from sqlalchemy.sql.expression import or_
+from sqlalchemy.sql.expression import or_, desc
 from sqlalchemy.types import String, Boolean, DateTime
 import datetime
 import logging
@@ -42,19 +42,19 @@ class Game(Base):
     ea_page_timestamp = Column(VARCHAR(255))
     datetime = Column(DateTime)
     club_1_id = Column(Integer, ForeignKey('club.id'), primary_key=True)
-    club_1_score = Column(INTEGER())
-    club_1_div_rank = Column(INTEGER())
-    club_1_division = Column(VARCHAR(10))
-    club_1_members = Column(INTEGER())
-    club_1_overall_rank = Column(INTEGER())
-    club_1_record = Column(VARCHAR(30))
+    club_1_score = Column(INTEGER(), default=-1)
+    club_1_div_rank = Column(INTEGER(), default=-1)
+    club_1_division = Column(VARCHAR(10), default='')
+    club_1_members = Column(INTEGER(), default=-1)
+    club_1_overall_rank = Column(INTEGER(), default=-1)
+    club_1_record = Column(VARCHAR(30), default='')
     club_2_id = Column(Integer, ForeignKey('club.id'), primary_key=True)
-    club_2_score = Column(INTEGER())        
-    club_2_div_rank = Column(INTEGER())
-    club_2_division = Column(VARCHAR(10))
-    club_2_members = Column(INTEGER())
-    club_2_overall_rank = Column(INTEGER())
-    club_2_record = Column(VARCHAR(30))
+    club_2_score = Column(INTEGER(), default=-1)        
+    club_2_div_rank = Column(INTEGER(), default=-1)
+    club_2_division = Column(VARCHAR(10), default='')
+    club_2_members = Column(INTEGER(), default=-1)
+    club_2_overall_rank = Column(INTEGER(), default=-1)
+    club_2_record = Column(VARCHAR(30), default='')
     
 
     def __init__(self, ea_id, club_1_id, club_1_score, club_2_id, club_2_score, time, ea_page_timestamp):
@@ -82,6 +82,13 @@ class Game(Base):
         s.flush()
         s.commit()
     
+    def game_date(self):
+        if self.ea_page_timestamp is None:
+            return None
+        mydate = datetime.datetime.fromtimestamp(float(self.ea_page_timestamp)).date()
+        pass
+        return mydate
+    
     def get_rank_info(self, club_id):
         ret_dict = {}
         if club_id == self.club_1_id:
@@ -108,17 +115,19 @@ class Club(Base):
         self.abbr = abbr
         self.logo = logo
     
-    def should_update(self, timestamp=datetime.datetime.now):
+    def should_update(self, timestamp=None):
         if self.last_rank_fetch is None:
             return True
+        if timestamp is None:
+            timestamp = datetime.datetime.now()
         return (timestamp - datetime.timedelta(minutes = 20)) > self.last_rank_fetch
     
     def get_games(self):
         return object_session(self).query(Game).filter_by(or_(Game.club_1_id == self.id, Game.club_2_id == self.id)).all()
 
     def most_recent_rank_info(self):
-        game = object_session(self).query(Game).filter_by(or_(Game.club_1_id == self.id, Game.club_2_id == self.id)).order_by(Game.ea_id).limit(2)
-        pass
+        game = object_session(self).query(Game).filter(or_(Game.club_1_id == self.id, Game.club_2_id == self.id)).order_by(desc(Game.ea_id)).limit(1).first()
+        return game.get_rank_info(self.id)
         
     def update_logo(self, logo=None):
         if logo is not None:            
@@ -155,7 +164,7 @@ class UserGame(Base):
         self.hits = hits
 
     def __repr__(self):
-        return '<UserGame %d @ %d>' % (self.game_id, self.user_id)
+        return '<UserGame %s @ %d>' % (self.user.username, self.game_id)
 
 #    def get_api_response_dict(self):
 #        response_dict = {'game_id':self.game_id, \
@@ -172,4 +181,7 @@ def clear_all():
     for table in reversed(Base.metadata.sorted_tables):
         engine.execute(table.delete())
         
+def get_games_for_user(id):
+    return Session.query(UserGame, Game).filter(UserGame.user_id==id).filter(UserGame.game_id==Game.id).all()
+    
 Base.metadata.create_all(engine)
