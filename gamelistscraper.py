@@ -140,11 +140,13 @@ def import_games(ea_club_id, days_from_start=0, days_from_end=0):
     for i in range(0 + days_from_start, 200-days_from_end):
         logger.debug('pass %d of %d' % (i-days_from_start, 178-days_from_end-days_from_start))
         dt = datetime.datetime.fromtimestamp(earliest_timestamp) + datetime.timedelta(days=i, hours=1)
+        if dt > datetime.datetime.now():#gone past today
+            break
         dt_stamp = str(time.mktime(dt.timetuple()))[:-2]#trim '.0' from end
         timeshifted_url = 'http://www.easportsworld.com/en_US/clubs/partial/401A0001/%s/match-results?timestamp=%s' % (str(ea_club_id), dt_stamp) 
         clubpage_soup = get_clubpage_soup(timeshifted_url) 
         games_list = clubpage_soup.find_all('table', {'class':"full-width plain simple-results-table no-margin fixed-layout-table"})
-        logger.debug('Found %d games on %s for %s' % (len(games_list), datetime.datetime.now().strftime("%Y-%m-%d"), ea_club_id))
+        logger.debug('Found %d games on %s for %s' % (len(games_list), dt.strftime("%Y-%m-%d"), ea_club_id))
         for game in games_list:
             left_team_id, right_team_id = get_team_ids(game)
             
