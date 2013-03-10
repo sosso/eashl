@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship, scoped_session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.session import sessionmaker, object_session
 from sqlalchemy.schema import ForeignKey
-from sqlalchemy.sql.expression import or_, desc
+from sqlalchemy.sql.expression import or_, desc, and_
 from sqlalchemy.types import String, Boolean, DateTime
 import datetime
 import logging
@@ -42,18 +42,18 @@ class Game(Base):
     ea_page_timestamp = Column(VARCHAR(255))
     datetime = Column(DateTime)
     club_1_id = Column(Integer, ForeignKey('club.id'), primary_key=True)
-    club_1_score = Column(INTEGER(), default=-1)
-    club_1_div_rank = Column(INTEGER(), default=-1)
+    club_1_score = Column(INTEGER(), default= -1)
+    club_1_div_rank = Column(INTEGER(), default= -1)
     club_1_division = Column(VARCHAR(10), default='')
-    club_1_members = Column(INTEGER(), default=-1)
-    club_1_overall_rank = Column(INTEGER(), default=-1)
+    club_1_members = Column(INTEGER(), default= -1)
+    club_1_overall_rank = Column(INTEGER(), default= -1)
     club_1_record = Column(VARCHAR(30), default='')
     club_2_id = Column(Integer, ForeignKey('club.id'), primary_key=True)
-    club_2_score = Column(INTEGER(), default=-1)        
-    club_2_div_rank = Column(INTEGER(), default=-1)
+    club_2_score = Column(INTEGER(), default= -1)        
+    club_2_div_rank = Column(INTEGER(), default= -1)
     club_2_division = Column(VARCHAR(10), default='')
-    club_2_members = Column(INTEGER(), default=-1)
-    club_2_overall_rank = Column(INTEGER(), default=-1)
+    club_2_members = Column(INTEGER(), default= -1)
+    club_2_overall_rank = Column(INTEGER(), default= -1)
     club_2_record = Column(VARCHAR(30), default='')
     
 
@@ -92,14 +92,31 @@ class Game(Base):
     def get_rank_info(self, club_id):
         ret_dict = {}
         if club_id == self.club_1_id:
-            ret_dict = dict(div_rank=self.club_1_div_rank, division=self.club_1_division, members=self.club_1_members,\
+            ret_dict = dict(div_rank=self.club_1_div_rank, division=self.club_1_division, members=self.club_1_members, \
                             overall_rank=self.club_1_overall_rank, record=self.club_1_record)
         elif club_id == self.club_2_id:
-            ret_dict = dict(div_rank=self.club_2_div_rank, division=self.club_2_division, members=self.club_2_members,\
+            ret_dict = dict(div_rank=self.club_2_div_rank, division=self.club_2_division, members=self.club_2_members, \
                             overall_rank=self.club_2_overall_rank, record=self.club_2_record)
         return ret_dict
-        
-
+    
+    def won_by(self, club):
+        if club.id == self.club_1_id:
+            return self.club_1_score > self.club_2_score
+        elif club.id == self.club_2_id:
+            return self.club_2_score > self.club_1_score
+        else:
+            return False
+    
+    def game_info(self):
+        ret_dict = dict(score="%d - %d" % (self.club_1_score, self.club_2_score), \
+                    club_1_rank=dict(division=self.club_1_division, rank=self.club_1_div_rank), \
+                    club_2_rank=dict(division=self.club_2_division, rank=self.club_2_div_rank))
+        if self.ea_page_timestamp is not None:
+            ret_dict['date'] = datetime.datetime.fromtimestamp(int(self.ea_page_timestamp)).strftime("%Y-%m-%d")
+        else:
+            ret_dict['date'] = ''
+        return ret_dict
+    
 class Club(Base):
     __tablename__ = 'club'
     id = Column(INTEGER(), primary_key=True, nullable=False)
@@ -120,7 +137,7 @@ class Club(Base):
             return True
         if timestamp is None:
             timestamp = datetime.datetime.now()
-        return (timestamp - datetime.timedelta(minutes = 20)) > self.last_rank_fetch
+        return (timestamp - datetime.timedelta(minutes=20)) > self.last_rank_fetch
     
     def get_games(self):
         return object_session(self).query(Game).filter_by(or_(Game.club_1_id == self.id, Game.club_2_id == self.id)).all()
@@ -139,6 +156,12 @@ class Club(Base):
         s.add(self)
         s.flush()
         s.commit()
+        
+    def display_info(self):
+        return self.logo + ";" + self.name
+    
+    def search_listing(self):
+        return {'logo':self.logo, 'name':self.name}
                
 
 class UserGame(Base):
@@ -182,6 +205,37 @@ def clear_all():
         engine.execute(table.delete())
         
 def get_games_for_user(id):
-    return Session.query(UserGame, Game).filter(UserGame.user_id==id).filter(UserGame.game_id==Game.id).all()
+    return Session.query(UserGame, Game).filter(UserGame.user_id == id).filter(UserGame.game_id == Game.id).all()
+
+def get_clubs(id=None, abbr=None):
+    q = Session.query(Club)
+    if id is not None:
+        q = q.filter(Club.id == id)
+    if abbr is not None:
+        q = q.filter(Club.abbr == abbr)
+    return q.all()
+
+def get_matchup_history(clubs):
+    games = get_games_between(clubs[0], clubs[1])
+    club_1_wins = 0
+    for game in games:
+        if game.won_by(clubs[0]):
+            club_1_wins += 1 
+    result_dict = {'Series': "%d - %d" % (club_1_wins, len(games) - club_1_wins)}
+    if len(games) > 0:
+        result_dict['Last Game'] = games[0].game_info()
+    else:
+        result_dict['Last Game'] = {}
+    return result_dict
+
+
+def get_games_between(club_1, club_2):
+#    return Session().query(Game).filter(and_(Game.club_1_id == club_1.id, Game.club_2_id == club_2.id)).order_by(desc(Game.ea_id)).all()
+    s1 = Session().query(Game).filter(and_(Game.club_1_id == club_1.id, Game.club_2_id == club_2.id)).order_by(desc(Game.ea_id)).all()
+    s2 = Session().query(Game).filter(and_(Game.club_1_id == club_2.id, Game.club_2_id == club_1.id)).order_by(desc(Game.ea_id)).all()
+    total = set(s1) | set(s2)
+    return list(total)
+                                        
+
     
 Base.metadata.create_all(engine)

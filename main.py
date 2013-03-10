@@ -1,5 +1,7 @@
-import os.path
+from handlers.account_handlers import ClubSearch
+from tornado.options import define, options
 import os
+import os.path
 import tornado.escape
 import tornado.httpserver
 import tornado.ioloop
@@ -8,7 +10,6 @@ import tornado.web
 import unicodedata
 
 # import and define tornado-y things
-from tornado.options import define, options
 define("port", default=5000, help="run on the given port", type=int)
 
 # application settings and handle mapping info
@@ -22,6 +23,7 @@ class Application(tornado.web.Application):
 		handlers = [
 			(r"/([^/]+)?", MainHandler),
 	    	(r"/(favicon\.ico)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
+	    	(r"/clubsearch", ClubSearch),
 		]
 		tornado.web.Application.__init__(self, handlers, **settings)
 

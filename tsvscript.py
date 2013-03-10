@@ -22,18 +22,22 @@ def multi_player_stats(ids):
     file = open('data.tsv', 'w')
     game_objs = [get_games_for_user(id) for id in ids]
     master_list = [tuple.Game for tuple in game_objs[0]]
+    people = [Session.query(User).filter(User.id==id).first() for id in ids]
+    names = ["Game"]   
+    mylist = []
+    [names.append(person.username) for person in people] 
+    mylist.append(names)
     for person in game_objs:
         person_list = []
         for tuple in person:
             person_list.append(tuple.Game)
         master_list = list(set(person_list) & set(master_list))
-    hok_strings = []
-    rob_strings = []
-    mylist = []
-    mylist.append(["Game", "Peach", "Hok", "Toolio"])
+    
     for game in master_list:
         usergames = Session.query(UserGame).filter(UserGame.game_id==game.id).filter(UserGame.user_id.in_(ids)).all()
-        mylist.append([game.ea_id, usergames[0].points, usergames[1].points, usergames[2].points])
+        game_stats = [game.ea_id]
+        [game_stats.append(usergame.points) for usergame in usergames]
+        mylist.append(game_stats)
     file.write(simplejson.dumps(mylist))
     pass
 

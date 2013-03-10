@@ -138,7 +138,7 @@ def import_games(ea_club_id, days_from_start=0, days_from_end=0):
     logger.addFilter(NoParsingFilter())
     logger.info('Starting import for %s from day %d and going %d days' % (ea_club_id, days_from_start, days_from_end))
     for i in range(0 + days_from_start, 200-days_from_end):
-        logger.debug('pass %d of %d' % (i-days_from_start, 178-days_from_end-days_from_start))
+        logger.debug('pass %d of %d' % (i-days_from_start, 200-days_from_end-days_from_start))
         dt = datetime.datetime.fromtimestamp(earliest_timestamp) + datetime.timedelta(days=i, hours=1)
         if dt > datetime.datetime.now():#gone past today
             break
