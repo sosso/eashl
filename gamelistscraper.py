@@ -189,5 +189,5 @@ def import_games(ea_club_id, days_from_start=0, days_from_end=0):
                     session.commit()
             else:
                 logger.debug('Game already processed')
-import_games('273', 30)
+#import_games('273', 30)
 #get_club_stats('http://www.easportsworld.com/en_US/clubs/401A0001/273/overview')

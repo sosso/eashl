@@ -7,7 +7,7 @@ from models import Session, Club, get_matchup_history, \
 #    games_arr = [{club_2.display_info():get_games_between(club_1, club_2)} for club_2 in matching_clubs]
 #    pass
 
-club_1 = get_clubs(1)[0]
-club_2 = get_clubs(174)[0]
-result_obj = get_matchup_history([club_1, club_2])
-pass
+#club_1 = get_clubs(1)[0]
+#club_2 = get_clubs(174)[0]
+#result_obj = get_matchup_history([club_1, club_2])
+#pass
