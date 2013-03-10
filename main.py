@@ -1,4 +1,4 @@
-from handlers.account_handlers import ClubSearch, MatchupHistory
+from handlers.account_handlers import ClubSearch, MatchupHistory, SetActiveClub
 from tornado.options import define, options
 import os
 import os.path
@@ -25,6 +25,7 @@ class Application(tornado.web.Application):
 	    	(r"/(favicon\.ico)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
 	    	(r"/clubsearch", ClubSearch),
 	    	(r"/matchuphistory", MatchupHistory),
+	    	(r"/setactiveclub", SetActiveClub),
 		]
 		tornado.web.Application.__init__(self, handlers, **settings)
 

@@ -1,5 +1,6 @@
 from models import Session, Club, get_games_between, get_clubs, \
     get_matchup_history
+import datetime
 import logging
 import simplejson
 import tornado.web
@@ -9,7 +10,10 @@ import tornado.web
 class MatchupHistory(tornado.web.RequestHandler):
     def get(self):
         logger = logging.getLogger('MatchupHistory')
-        club_1_id = self.get_argument('club_1_id')
+        if "club_id" in self.cookies:
+            club_1_id = self.get_cookie("club_id", 0) 
+        else:            
+            club_1_id = self.get_argument('club_1_id') 
         club_2_id= self.get_argument('club_2_id')
         try:
             clubs = [get_clubs(id)[0] for id in [club_1_id, club_2_id]]
@@ -39,3 +43,18 @@ class ClubSearch(tornado.web.RequestHandler):
             Session.remove()
             self.render("searchresults.html", results=result_obj)
 #            self.finish(simplejson.dumps(result_obj))
+
+class SetActiveClub(tornado.web.RequestHandler):
+    def get(self):
+        logger = logging.getLogger('SetActiveClub')
+        club_id = self.get_argument('id', None)        
+        try:
+            expires = datetime.datetime.utcnow() + datetime.timedelta(days=365)
+            self.set_cookie("club_id", value=club_id,expires=expires)
+            return
+        except Exception, e:
+            logger.exception(e)
+            Session().rollback()
+        finally:
+            Session.remove()
+            self.render("activeclubsuccess.html")
