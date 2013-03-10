@@ -1,0 +1,4 @@
+{% for result in results %}
+     <img src="{{result['logo']}}"/> <a href="/matchuphistory?club_1_id=1&club_2_id={{result['id']}}">{{result['name']}}</a>
+     <br>
+{% end %}

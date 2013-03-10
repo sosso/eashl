@@ -1,0 +1,47 @@
+<h2>Head to Head:	{{ history['Series'] }}</h4>
+<br>
+<h1>Last Game</h1>
+Date: {{history['Last Game']['date']}} <br>
+Score: {{history['Last Game']['score']}} <br>
+Club 1 Division: {{history['Last Game']['club_1_rank']['division']}} <br>
+Club 1 Rank: {{history['Last Game']['club_1_rank']['rank']}} <br>
+Roster <br>
+   <table border="1">
+        <tr>
+        	<td>Name</td>
+        	<td>Position</td>
+        	<td>Hits</td>
+        	<td>Points</td>
+        	
+        </tr>
+        {% for player in history['Last Game']['club_1_roster'] %}
+	        <tr>
+	        {% for key,value in player.items() %}
+	                <td>{{ value }}</td>
+	        {% end %}
+	        </tr>
+        {% end %}
+    </table>
+<br>
+
+Club 2 Division: {{history['Last Game']['club_2_rank']['division']}} <br>
+Club 2 Rank: {{history['Last Game']['club_2_rank']['rank']}} <br>
+Roster <br>
+   <table border="1">
+        <tr>
+        	<td>Name</td>
+        	<td>Position</td>
+        	<td>Hits</td>
+        	<td>Points</td>
+        	
+        </tr>
+        {% for player in history['Last Game']['club_2_roster'] %}
+	        <tr>
+	        {% for key,value in player.items() %}
+	                <td>{{ value }}</td>
+	        {% end %}
+	        </tr>
+        {% end %}
+    </table>
+<br>
+

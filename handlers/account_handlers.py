@@ -1,6 +1,4 @@
-from handlers.response_utils import get_response_dict, auth_required, \
-    BaseHandler
-from models import Session, Club, get_club, get_games_between, get_clubs, \
+from models import Session, Club, get_games_between, get_clubs, \
     get_matchup_history
 import logging
 import simplejson
@@ -14,15 +12,16 @@ class MatchupHistory(tornado.web.RequestHandler):
         club_1_id = self.get_argument('club_1_id')
         club_2_id= self.get_argument('club_2_id')
         try:
-            clubs = [get_club(id)[0] for id in [club_1_id, club_2_id]]
-            result_obj = get_matchup_history(clubs[0], clubs[1])
+            clubs = [get_clubs(id)[0] for id in [club_1_id, club_2_id]]
+            result_obj = get_matchup_history(clubs)
         except Exception, e:
             logger.exception(e)
             Session().rollback()
             result_obj = {}
         finally:
             Session.remove()
-            self.finish(simplejson.dumps(result_obj))
+            self.render("matchuphistory.html", history=result_obj)
+#            self.finish(simplejson.dumps(result_obj))
             
 class ClubSearch(tornado.web.RequestHandler):
     def get(self):
@@ -38,4 +37,5 @@ class ClubSearch(tornado.web.RequestHandler):
             result_obj = []
         finally:
             Session.remove()
-            self.finish(simplejson.dumps(result_obj))
+            self.render("searchresults.html", results=result_obj)
+#            self.finish(simplejson.dumps(result_obj))

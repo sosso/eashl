@@ -1,5 +1,4 @@
 from dbutils import get_or_create
-from passlib.handlers.sha2_crypt import sha256_crypt
 from sqlalchemy import Column, Integer, VARCHAR, INTEGER
 from sqlalchemy.engine import create_engine
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -99,6 +98,9 @@ class Game(Base):
                             overall_rank=self.club_2_overall_rank, record=self.club_2_record)
         return ret_dict
     
+    club_1_usergames = relationship("UserGame", primaryjoin='(and_(UserGame.club_id==Game.club_1_id, UserGame.game_id==Game.id))')
+    club_2_usergames = relationship("UserGame", primaryjoin='(and_(UserGame.club_id==Game.club_2_id, UserGame.game_id==Game.id))')
+    
     def won_by(self, club):
         if club.id == self.club_1_id:
             return self.club_1_score > self.club_2_score
@@ -111,6 +113,8 @@ class Game(Base):
         ret_dict = dict(score="%d - %d" % (self.club_1_score, self.club_2_score), \
                     club_1_rank=dict(division=self.club_1_division, rank=self.club_1_div_rank), \
                     club_2_rank=dict(division=self.club_2_division, rank=self.club_2_div_rank))
+        ret_dict['club_1_roster'] = [usergame.info() for usergame in self.club_1_usergames]
+        ret_dict['club_2_roster'] = [usergame.info() for usergame in self.club_2_usergames]
         if self.ea_page_timestamp is not None:
             ret_dict['date'] = datetime.datetime.fromtimestamp(int(self.ea_page_timestamp)).strftime("%Y-%m-%d")
         else:
@@ -161,7 +165,7 @@ class Club(Base):
         return self.logo + ";" + self.name
     
     def search_listing(self):
-        return {'logo':self.logo, 'name':self.name}
+        return {'logo':self.logo, 'name':self.name, 'id':self.id}
                
 
 class UserGame(Base):
@@ -188,6 +192,9 @@ class UserGame(Base):
 
     def __repr__(self):
         return '<UserGame %s @ %d>' % (self.user.username, self.game_id)
+    
+    def info(self):
+        return dict(position=self.position, points=self.points, hits=self.hits, username=self.user.username)
 
 #    def get_api_response_dict(self):
 #        response_dict = {'game_id':self.game_id, \
