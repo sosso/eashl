@@ -98,7 +98,11 @@ class Game(Base):
                             overall_rank=self.club_2_overall_rank, record=self.club_2_record)
         return ret_dict
     
+    
+    club_1 = relationship("Club", primaryjoin='(Club.id==Game.club_1_id)')
     club_1_usergames = relationship("UserGame", primaryjoin='(and_(UserGame.club_id==Game.club_1_id, UserGame.game_id==Game.id))')
+    
+    club_2 = relationship("Club", primaryjoin='(Club.id==Game.club_2_id)')
     club_2_usergames = relationship("UserGame", primaryjoin='(and_(UserGame.club_id==Game.club_2_id, UserGame.game_id==Game.id))')
     
     def won_by(self, club):
@@ -113,8 +117,13 @@ class Game(Base):
         ret_dict = dict(score="%d - %d" % (self.club_1_score, self.club_2_score), \
                     club_1_rank=dict(division=self.club_1_division, rank=self.club_1_div_rank), \
                     club_2_rank=dict(division=self.club_2_division, rank=self.club_2_div_rank))
+        ret_dict['club_1_name'] = self.club_1.name
+        ret_dict['club_1_logo'] = self.club_1.logo
         ret_dict['club_1_roster'] = [usergame.info() for usergame in self.club_1_usergames]
+        
         ret_dict['club_2_roster'] = [usergame.info() for usergame in self.club_2_usergames]
+        ret_dict['club_2_name'] = self.club_2.name
+        ret_dict['club_2_logo'] = self.club_2.logo
         if self.ea_page_timestamp is not None:
             ret_dict['date'] = datetime.datetime.fromtimestamp(int(self.ea_page_timestamp)).strftime("%Y-%m-%d")
         else:
@@ -143,8 +152,8 @@ class Club(Base):
             timestamp = datetime.datetime.now()
         return (timestamp - datetime.timedelta(minutes=20)) > self.last_rank_fetch
     
-    def get_games(self):
-        return object_session(self).query(Game).filter_by(or_(Game.club_1_id == self.id, Game.club_2_id == self.id)).all()
+    def get_games(self, limit=10):
+        return object_session(self).query(Game).filter(or_(Game.club_1_id == self.id, Game.club_2_id == self.id)).order_by(desc(Game.ea_id)).limit(limit).all()
 
     def most_recent_rank_info(self):
         game = object_session(self).query(Game).filter(or_(Game.club_1_id == self.id, Game.club_2_id == self.id)).order_by(desc(Game.ea_id)).limit(1).first()
@@ -235,6 +244,18 @@ def get_matchup_history(clubs):
         result_dict['Last Game'] = None
     return result_dict
 
+def get_match_history(club):
+    games = club.get_games()
+    club_wins = 0
+    for game in games:
+        if game.won_by(club):
+            club_wins += 1 
+    result_dict = {'record': "%d - %d" % (club_wins, len(games) - club_wins)}
+    if len(games) > 0:
+        result_dict['games'] = [game.game_info() for game in games]
+    else:
+        result_dict['games'] = []
+    return result_dict
 
 def get_games_between(club_1, club_2):
 #    return Session().query(Game).filter(and_(Game.club_1_id == club_1.id, Game.club_2_id == club_2.id)).order_by(desc(Game.ea_id)).all()

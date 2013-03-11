@@ -1,5 +1,5 @@
 from models import Session, Club, get_games_between, get_clubs, \
-    get_matchup_history
+    get_matchup_history, get_match_history
 import datetime
 import logging
 import simplejson
@@ -26,6 +26,26 @@ class MatchupHistory(tornado.web.RequestHandler):
             Session.remove()
             self.render("matchuphistory.html", history=result_obj)
 #            self.finish(simplejson.dumps(result_obj))
+
+
+class MatchHistory(tornado.web.RequestHandler):
+    def get(self):
+        logger = logging.getLogger('MatchupHistory')
+        club_id = self.get_argument('club_id', None)
+        if club_id is None:
+            club_id = self.get_cookie("club_id") 
+        else:
+            club_id = self.get_argument('club_id')
+        try:
+            club = get_clubs(club_id)[0]
+            result_obj = get_match_history(club)
+        except Exception, e:
+            logger.exception(e)
+            Session().rollback()
+            result_obj = {}
+        finally:
+            Session.remove()
+            self.render("gamehistory.html", result=result_obj)
             
 class ClubSearch(tornado.web.RequestHandler):
     def get(self):

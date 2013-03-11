@@ -1,0 +1,61 @@
+<h2>Head to Head:	{{ result['record'] }}</h4>
+<br>
+{% for game in result['games'] %}
+	<img src="{{game['club_1_logo']}}"/> VS <img src="{{game['club_2_logo']}}"/>
+	<br>
+	{{game['club_1_name']}}          vs           {{game['club_2_name']}}
+	<br>
+	Date: {{game['date']}}
+	<br>
+	Score: {{game['score']}}
+	<br>
+	Club 1 Division: {{game['club_1_rank']['division']}}
+	<br>
+	Club 1 Rank: {{game['club_1_rank']['rank']}}
+	<br>
+	Roster
+	<br>
+	<table border="1">
+		<tr>
+			<td>Name</td>
+			<td>Position</td>
+			<td>Hits</td>
+			<td>Points</td>
+	
+		</tr>
+		{% for player in game['club_1_roster'] %}
+		<tr>
+			<td>{{ player['username'] }}</td>
+			<td>{{ player['position'] }}</td>
+			<td>{{ player['hits'] }}</td>
+			<td>{{ player['points'] }}</td>
+		</tr>
+		{% end %}
+	</table>
+	<br>
+	Club 2 Division: {{game['club_2_rank']['division']}}
+	<br>
+	Club 2 Rank: {{game['club_2_rank']['rank']}}
+	<br>
+	Roster
+	<br>
+	<table border="1">
+		<tr>
+			<td>Name</td>
+			<td>Position</td>
+			<td>Hits</td>
+			<td>Points</td>
+	
+		</tr>
+		{% for player in game['club_2_roster'] %}
+		<tr>
+			<td>{{ player['username'] }}</td>
+			<td>{{ player['position'] }}</td>
+			<td>{{ player['hits'] }}</td>
+			<td>{{ player['points'] }}</td>
+		</tr>
+		{% end %}
+	</table>
+	<br><br><br><br>
+	
+{% end %}

@@ -1,6 +1,10 @@
 <h2>Head to Head:	{{ history['Series'] }}</h4>
 <br>
 {% if history['Last Game'] is not None %}
+	<img src="{{history['Last Game']['club_1_logo']}}"/> VS <img src="{{history['Last Game']['club_2_logo']}}"/>
+	<br>
+	{{history['Last Game']['club_1_name']}}          vs           {{history['Last Game']['club_2_name']}}
+	<br>
 	<h1>Last Game</h1> Date: {{history['Last Game']['date']}}
 	<br>
 	Score: {{history['Last Game']['score']}}
