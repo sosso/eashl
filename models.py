@@ -21,7 +21,9 @@ engine = create_engine('mysql://b2970bc5c51ab9:96b6d5d8@us-cdbr-east-03.cleardb.
 Base = declarative_base(bind=engine)
 sm = sessionmaker(bind=engine, autoflush=True, autocommit=False, expire_on_commit=False)
 Session = scoped_session(sm)
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
+requests_log = logging.getLogger("requests")
+requests_log.setLevel(logging.WARNING)
 
 class User(Base):
     __tablename__ = 'user'
@@ -223,12 +225,14 @@ def clear_all():
 def get_games_for_user(id):
     return Session.query(UserGame, Game).filter(UserGame.user_id == id).filter(UserGame.game_id == Game.id).all()
 
-def get_clubs(id=None, abbr=None):
+def get_clubs(id=None, abbr=None, ea_id=None):
     q = Session.query(Club)
     if id is not None:
         q = q.filter(Club.id == id)
     if abbr is not None:
         q = q.filter(Club.abbr == abbr)
+    if ea_id is not None:
+        q = q.filter(Club.ea_id == ea_id)
     return q.all()
 
 def get_matchup_history(clubs):

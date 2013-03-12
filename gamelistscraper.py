@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 from dbutils import get_or_create
-from logging_setup import NoParsingFilter
 from models import Session, Game, Club, UserGame
 import datetime
 import logging
@@ -135,8 +134,7 @@ def get_rank_info(club):
 
 def import_games(ea_club_id, days_from_start=0, days_from_end=0):
     logger = logging.getLogger('import')
-    logger.addFilter(NoParsingFilter())
-    logger.info('Starting import for %s from day %d and going %d days' % (ea_club_id, days_from_start, days_from_end))
+    logger.info('Starting import for %s from day %d and stopping %d days early' % (ea_club_id, days_from_start, days_from_end))
     for i in range(0 + days_from_start, 220-days_from_end):
         try:
             logger.debug('pass %d of %d' % (i-days_from_start, 200-days_from_end-days_from_start))
@@ -195,5 +193,4 @@ def import_games(ea_club_id, days_from_start=0, days_from_end=0):
                     logger.debug('Game already processed')
         except Exception as e:
                 logger.exception(e)
-import_games('273', 179, 0)
 #get_club_stats('http://www.easportsworld.com/en_US/clubs/401A0001/273/overview')

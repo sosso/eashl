@@ -1,3 +1,4 @@
+from gamelistscraper import earliest_timestamp, import_games
 from models import Session, Club, get_games_between, get_clubs, \
     get_matchup_history, get_match_history
 import datetime
@@ -5,6 +6,26 @@ import logging
 import simplejson
 import tornado.web
 
+
+class ImportGames(tornado.web.RequestHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        logger = logging.getLogger('MatchupHistory')            
+        ea_id = self.get_argument('ea_id') 
+        try:
+            club = get_clubs(ea_id=ea_id)[0]
+            most_recent_game = club.get_games(1)[0]
+            dt = datetime.datetime.fromtimestamp(float(most_recent_game.ea_page_timestamp))
+            days_from_start = (dt - datetime.datetime.fromtimestamp(float(earliest_timestamp))).days - 1
+            import_games(club.ea_id, days_from_start, 0)
+            result_str = 'success'
+        except Exception, e:
+            logger.exception(e)
+            Session().rollback()
+            result_str = e.message
+        finally:
+            Session.remove()
+            self.finish(result_str)
 
 
 class MatchupHistory(tornado.web.RequestHandler):
