@@ -3,7 +3,6 @@ http://code.google.com/p/pytesser/
 by Michael J.T. O'Kelly
 V 0.0.1, 3/10/07"""
 
-import PIL.Image as Image
 import errors
 import subprocess
 import util

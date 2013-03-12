@@ -1,6 +1,7 @@
 BeautifulSoup==3.2.1
 SQLAlchemy==0.8.0b2
+mysql-python==1.2.4
+pillow==1.7.8
 requests==1.1.0
 simplejson==3.1.0
 tornado==2.4.1
-mysql-python==1.2.4c1

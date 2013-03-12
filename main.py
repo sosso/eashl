@@ -1,5 +1,5 @@
 from handlers.account_handlers import ClubSearch, MatchupHistory, SetActiveClub, \
-	MatchHistory, ImportGames, PlayerHistory
+	MatchHistory, ImportGames, PlayerHistory, StatsUpload
 from tornado.options import define, options
 import os
 import os.path
@@ -30,6 +30,7 @@ class Application(tornado.web.Application):
 	    	(r"/matchhistory", MatchHistory),
 	    	(r"/importgames", ImportGames),
 	    	(r"/playerhistory", PlayerHistory),
+	    	(r"/statsupload", StatsUpload),
 		]
 		tornado.web.Application.__init__(self, handlers, **settings)
 

@@ -1,4 +1,11 @@
-<br>
+{% if game is None %}
+<div>
+	<form action="" method="POST">
+		<input type="text" name="image_url" id="image_url" size="40" value="">
+		<input type="submit" value="Submit">
+	</form>
+</div>
+{% else %}
 <table border="1">
 	<tr>
 		<td>Name</td>
@@ -6,18 +13,20 @@
 		<td>Shots</td>
 		<td>Hits</td>
 		<td>TOA</td>
-		<td>Passing %</td>
+		<td>Pass %</td>
 		<td>PIM</td>
-		<td>Powerplays</td>
+		<td>PP</td>
+		<td>PP Time</td>
 		<td>Faceoffs</td>
 		<td>Breakaways</td>
 		<td>One-Timers</td>
 		<td>SHG</td>
 		<td>Penalty Shots</td>
-		<td>Empty Net Goals</td>
+		<td>ENG</td>
 	</tr>
 	{% for team in game['team_stats'] %}
 	<tr>
+		<td>team</td>
 		<td>{{team[0]}}</td>
 		<td>{{team[1]}}</td>
 		<td>{{team[2]}}</td>
@@ -35,3 +44,4 @@
 	</tr>
 	{% end %}
 </table>
+{% end %}
