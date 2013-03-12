@@ -74,7 +74,7 @@ class StatsUpload(tornado.web.RequestHandler):
         self.render("gamestats.html", game=None)
     def post(self):
         image_url = self.get_argument("image_url")
-        result = get_stats(image_url, requests.get(image_url).content)
+        result = get_stats(image_url)
         self.render("gamestats.html", game={'team_stats':result})
 
 class MatchHistory(tornado.web.RequestHandler):
