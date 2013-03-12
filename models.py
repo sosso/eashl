@@ -16,8 +16,12 @@ import os
 
 # if os.environ.get('TEST_RUN', "False") == "True":
 #    engine = create_engine('mysql://anthony:password@127.0.0.1:3306/test_assassins', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
-#engine = create_engine('mysql://b2970bc5c51ab9:96b6d5d8@us-cdbr-east-03.cleardb.com/heroku_ee20403d72a96df', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
-engine = create_engine('mysql://anthony:password@127.0.0.1:3306/eashlhistory2', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
+if os.environ.get('TEST_RUN', "False") == "True":
+    engine = create_engine('mysql://anthony:password@127.0.0.1:3306/eashlhistory2', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
+else:
+    engine = create_engine('mysql://b2970bc5c51ab9:96b6d5d8@us-cdbr-east-03.cleardb.com/heroku_ee20403d72a96df', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
+    
+    
 Base = declarative_base(bind=engine)
 sm = sessionmaker(bind=engine, autoflush=True, autocommit=False, expire_on_commit=False)
 Session = scoped_session(sm)
