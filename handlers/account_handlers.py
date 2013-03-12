@@ -1,8 +1,10 @@
 from gamelistscraper import earliest_timestamp, import_games
 from models import Session, Club, get_games_between, get_clubs, \
     get_matchup_history, get_match_history, get_player
+from statsprocessor import get_stats
 import datetime
 import logging
+import requests
 import simplejson
 import tornado.web
 
@@ -57,7 +59,7 @@ class PlayerHistory(tornado.web.RequestHandler):
         else:
             player_id = self.get_argument('player_id')
         try:
-            result_obj = get_player(player_id).recent_game_history()
+            result_obj = get_player(player_id).recent_game_history(limit=25)
         except Exception, e:
             logger.exception(e)
             Session().rollback()
@@ -67,7 +69,16 @@ class PlayerHistory(tornado.web.RequestHandler):
             self.render("playerhistory.html", history=result_obj)
 #            self.finish(simplejson.dumps(result_obj))
 
-
+class StatsUpload(tornado.web.RequestHandler):
+    def get(self):
+        stats = logging.getLogger('StatsUpload')
+        self.render("playerhistory.html", history=result_obj)
+    def post(self):
+        stats = logging.getLogger('StatsUpload')
+        image_url = self.get_argument("image_url")
+        f = open(image_url, 'wb')
+        f.write(requests.get(image_url).content)
+        self.render("gamestats.html", game=get_stats(image_url))
 
 class MatchHistory(tornado.web.RequestHandler):
     def get(self):

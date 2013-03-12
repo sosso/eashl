@@ -1,0 +1,37 @@
+<br>
+<table border="1">
+	<tr>
+		<td>Name</td>
+		<td>Goals</td>
+		<td>Shots</td>
+		<td>Hits</td>
+		<td>TOA</td>
+		<td>Passing %</td>
+		<td>PIM</td>
+		<td>Powerplays</td>
+		<td>Faceoffs</td>
+		<td>Breakaways</td>
+		<td>One-Timers</td>
+		<td>SHG</td>
+		<td>Penalty Shots</td>
+		<td>Empty Net Goals</td>
+	</tr>
+	{% for team in game['team_stats'] %}
+	<tr>
+		<td>{{team[0]}}</td>
+		<td>{{team[1]}}</td>
+		<td>{{team[2]}}</td>
+		<td>{{team[3]}}</td>
+		<td>{{team[4]}}</td>
+		<td>{{team[5]}}</td>
+		<td>{{team[6]}}</td>
+		<td>{{team[7]}}</td>
+		<td>{{team[8]}}</td>
+		<td>{{team[9]}}</td>
+		<td>{{team[10]}}</td>
+		<td>{{team[11]}}</td>
+		<td>{{team[12]}}</td>
+		<td>{{team[13]}}</td>
+	</tr>
+	{% end %}
+</table>

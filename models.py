@@ -16,8 +16,8 @@ import os
 
 # if os.environ.get('TEST_RUN', "False") == "True":
 #    engine = create_engine('mysql://anthony:password@127.0.0.1:3306/test_assassins', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
-engine = create_engine('mysql://b2970bc5c51ab9:96b6d5d8@us-cdbr-east-03.cleardb.com/heroku_ee20403d72a96df', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
-#engine = create_engine('mysql://anthony:password@127.0.0.1:3306/eashlhistory2', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
+#engine = create_engine('mysql://b2970bc5c51ab9:96b6d5d8@us-cdbr-east-03.cleardb.com/heroku_ee20403d72a96df', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
+engine = create_engine('mysql://anthony:password@127.0.0.1:3306/eashlhistory2', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
 Base = declarative_base(bind=engine)
 sm = sessionmaker(bind=engine, autoflush=True, autocommit=False, expire_on_commit=False)
 Session = scoped_session(sm)
@@ -37,7 +37,24 @@ class User(Base):
     
     def recent_game_history(self, limit=10):
         usergames = get_games_for_user(id=self.id, limit=limit)
-        return {'username':self.username, 'games':[usergame.UserGame.info() for usergame in usergames]}
+        points = 0
+        hits = 0
+        non_goalie_games = 0
+        games_list = []
+        for usergame in usergames:
+            games_list.append(usergame[0])
+            if usergame[0].position != 'G':
+                non_goalie_games += 1
+                points += usergame[0].points
+                hits += usergame[0].hits
+        ret_dict = {'username':self.username, 'games':games_list}
+        if non_goalie_games > 0:
+            ret_dict['hpg'] = hits/non_goalie_games
+            ret_dict['ppg'] = points/non_goalie_games
+        else:
+            ret_dict['hpg'] = 0.0
+            ret_dict['ppg'] = 0.0
+        return ret_dict
     
 class Game(Base):
     __tablename__ = 'game'

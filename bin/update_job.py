@@ -6,7 +6,7 @@ import logging
 #
 logger = logging.getLogger('ImportJob')
 d = datetime.datetime.now()
-if d.hour in range (0, 4) or d.hour in range(20,25):#only run from 8pm-3:59am
+if d.hour in range (0, 8) or d.hour in range(22,25):#only run during these hours (heroku server seems to be eastern + 4?)
     if d.minute in range(0, 10) or d.minute in range(20,30) or d.minute in range(40,50):
         our_club = get_clubs(1)[0]
         most_recent_game = our_club.get_games(1)[0]
