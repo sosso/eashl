@@ -34,7 +34,11 @@ class User(Base):
         self.username = username
         
     games = relationship('UserGame', primaryjoin='UserGame.user_id==User.id')
-
+    
+    def recent_game_history(self, limit=10):
+        usergames = get_games_for_user(id=self.id, limit=limit)
+        return {'username':self.username, 'games':[usergame.UserGame.info() for usergame in usergames]}
+    
 class Game(Base):
     __tablename__ = 'game'
     id = Column(INTEGER(), primary_key=True)
@@ -178,7 +182,6 @@ class Club(Base):
     def search_listing(self):
         return {'logo':self.logo, 'name':self.name, 'id':self.id}
                
-
 class UserGame(Base):
     __tablename__ = 'user_game'
 
@@ -205,7 +208,7 @@ class UserGame(Base):
         return '<UserGame %s @ %d>' % (self.user.username, self.game_id)
     
     def info(self):
-        return dict(position=self.position, points=self.points, hits=self.hits, username=self.user.username)
+        return dict(position=self.position, points=self.points, hits=self.hits, username=self.user.username, id=self.user_id)
 
 #    def get_api_response_dict(self):
 #        response_dict = {'game_id':self.game_id, \
@@ -222,8 +225,11 @@ def clear_all():
     for table in reversed(Base.metadata.sorted_tables):
         engine.execute(table.delete())
         
-def get_games_for_user(id):
-    return Session.query(UserGame, Game).filter(UserGame.user_id == id).filter(UserGame.game_id == Game.id).all()
+def get_games_for_user(id, limit=None):
+    q = Session.query(UserGame, Game).filter(UserGame.user_id == id).filter(UserGame.game_id == Game.id).order_by(desc(Game.ea_id))
+    if limit is not None:
+        q = q.limit(limit)
+    return q.all() 
 
 def get_clubs(id=None, abbr=None, ea_id=None):
     q = Session.query(Club)
@@ -234,6 +240,14 @@ def get_clubs(id=None, abbr=None, ea_id=None):
     if ea_id is not None:
         q = q.filter(Club.ea_id == ea_id)
     return q.all()
+
+def get_player(id=None, username=None):
+    q = Session.query(User)
+    if id is not None:
+        q = q.filter(User.id == id)
+    if username is not None:
+        q = q.filter(User.username == username)
+    return q.first()
 
 def get_matchup_history(clubs):
     games = get_games_between(clubs[0], clubs[1])

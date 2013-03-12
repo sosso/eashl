@@ -1,6 +1,6 @@
 from gamelistscraper import earliest_timestamp, import_games
 from models import Session, Club, get_games_between, get_clubs, \
-    get_matchup_history, get_match_history
+    get_matchup_history, get_match_history, get_player
 import datetime
 import logging
 import simplejson
@@ -47,6 +47,26 @@ class MatchupHistory(tornado.web.RequestHandler):
             Session.remove()
             self.render("matchuphistory.html", history=result_obj)
 #            self.finish(simplejson.dumps(result_obj))
+
+class PlayerHistory(tornado.web.RequestHandler):
+    def get(self):
+        logger = logging.getLogger('PlayerHistory')
+        player_id = self.get_argument('player_id', None)
+        if player_id is None:
+            player_id = self.get_cookie("player_id") 
+        else:
+            player_id = self.get_argument('player_id')
+        try:
+            result_obj = get_player(player_id).recent_game_history()
+        except Exception, e:
+            logger.exception(e)
+            Session().rollback()
+            result_obj = {}
+        finally:
+            Session.remove()
+            self.render("playerhistory.html", history=result_obj)
+#            self.finish(simplejson.dumps(result_obj))
+
 
 
 class MatchHistory(tornado.web.RequestHandler):
