@@ -15,4 +15,5 @@ if d.hour in range (0, 4) or d.hour in range(20,25):#only run from 8pm-3:59am
         import_games(our_club.ea_id, days_from_start, 0)
     else:
         logger.info('Skipping import because minutes are %d' % d.minute)
-logger.info('Skipping import because hour is ' % d.hour)
+else:
+    logger.info('Skipping import because hour is %d' % d.hour)
