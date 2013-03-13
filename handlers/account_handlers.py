@@ -9,6 +9,11 @@ import simplejson
 import tornado.web
 
 
+class HomeHandler(tornado.web.RequestHandler):
+    def get(self):
+        return self.render("index.html")
+
+
 class ImportGames(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
@@ -37,7 +42,7 @@ class MatchupHistory(tornado.web.RequestHandler):
             club_1_id = self.get_cookie("club_id", 0) 
         else:            
             club_1_id = self.get_argument('club_1_id') 
-        club_2_id= self.get_argument('club_2_id')
+        club_2_id = self.get_argument('club_2_id')
         try:
             clubs = [get_clubs(id)[0] for id in [club_1_id, club_2_id]]
             result_obj = get_matchup_history(clubs)
@@ -100,14 +105,14 @@ class ClubSearch(tornado.web.RequestHandler):
     def get(self):
         logger = logging.getLogger('ClubSearch')
         id = self.get_argument('id', None)
-        abbr= self.get_argument('abbr', None)        
+        abbr = self.get_argument('abbr', None)        
         try:
             clubs = get_clubs(id, abbr)
             result_obj = [club.search_listing() for club in clubs]
         except Exception, e:
             logger.exception(e)
             Session().rollback()
-            result_obj = []
+            result_obj = None
         finally:
             Session.remove()
             self.render("searchresults.html", results=result_obj)
@@ -119,7 +124,7 @@ class SetActiveClub(tornado.web.RequestHandler):
         club_id = self.get_argument('id', None)        
         try:
             expires = datetime.datetime.utcnow() + datetime.timedelta(days=365)
-            self.set_cookie("club_id", value=club_id,expires=expires)
+            self.set_cookie("club_id", value=club_id, expires=expires)
             return
         except Exception, e:
             logger.exception(e)

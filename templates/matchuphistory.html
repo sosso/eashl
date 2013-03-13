@@ -1,27 +1,34 @@
+{% extends "_layout.html" %}
+{% block title %}Game History{% end %}
+
+{% block content %}
 <h2>Head to Head:	{{ history['Series'] }}</h4>
 <br>
-{% if history['Last Game'] is not None %}
-	<img src="{{history['Last Game']['club_1_logo']}}"/> VS <img src="{{history['Last Game']['club_2_logo']}}"/>
-	<br>
+{% if history['Last Game'] is not None %} <img src="{{history['Last Game']['club_1_logo']}}"/> VS <img src="{{history['Last Game']['club_2_logo']}}"/>
+<div>
 	{{history['Last Game']['club_1_name']}}          vs           {{history['Last Game']['club_2_name']}}
-	<br>
-	<h1>Last Game</h1> Date: {{history['Last Game']['date']}}
-	<br>
-	Score: {{history['Last Game']['score']}}
-	<br>
-	Club 1 Division: {{history['Last Game']['club_1_rank']['division']}}
-	<br>
-	Club 1 Rank: {{history['Last Game']['club_1_rank']['rank']}}
-	<br>
-	Roster
-	<br>
+	<p>
+		<h1>Last Game</h1> Date: {{history['Last Game']['date']}}
+	</p>
+	<p>
+		Score: {{history['Last Game']['score']}}
+	</p>
+	<p>
+		Club 1 Division: {{history['Last Game']['club_1_rank']['division']}}
+	</p>
+	<p>
+		Club 1 Rank: {{history['Last Game']['club_1_rank']['rank']}}
+	</p>
+	<p>
+		Roster
+	</p>
 	<table border="1">
 		<tr>
 			<td>Name</td>
 			<td>Position</td>
 			<td>Hits</td>
 			<td>Points</td>
-	
+
 		</tr>
 		{% for player in history['Last Game']['club_1_roster'] %}
 		<tr>
@@ -32,20 +39,22 @@
 		</tr>
 		{% end %}
 	</table>
-	<br>
-	Club 2 Division: {{history['Last Game']['club_2_rank']['division']}}
-	<br>
-	Club 2 Rank: {{history['Last Game']['club_2_rank']['rank']}}
-	<br>
-	Roster
-	<br>
+	<p>
+		Club 2 Division: {{history['Last Game']['club_2_rank']['division']}}
+	</p>
+	<p>
+		Club 2 Rank: {{history['Last Game']['club_2_rank']['rank']}}
+	</p>
+	<p>
+		Roster
+	</p>
 	<table border="1">
 		<tr>
 			<td>Name</td>
 			<td>Position</td>
 			<td>Hits</td>
 			<td>Points</td>
-	
+
 		</tr>
 		{% for player in history['Last Game']['club_2_roster'] %}
 		<tr>
@@ -57,4 +66,6 @@
 		{% end %}
 	</table>
 	<br>
+</div> {% end %}
+
 {% end %}

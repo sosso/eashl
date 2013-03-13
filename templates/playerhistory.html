@@ -1,7 +1,19 @@
-Last {{len(history['games'])}} games for {{history['username']}}
-<br>
-Points per game: {{history['ppg']}}
-Hits per game: {{history['hpg']}}
+{% extends "_layout.html" %}
+{% block title %}Player game history{% end %}
+
+{% block scripts %}
+{% end %}
+
+{% block content %}
+<p>
+	Last {{len(history['games'])}} games for {{history['username']}}
+</p>
+<p>
+	Points per game: {{history['ppg']}}
+</p>
+<p>
+	Hits per game: {{history['hpg']}}
+</p>
 <br>
 <table border="1">
 	<tr>
@@ -11,9 +23,10 @@ Hits per game: {{history['hpg']}}
 	</tr>
 	{% for game in history['games'] %}
 	<tr>
-		<td>{{ game['position'] }}</td>
-		<td>{{ game['hits'] }}</td>
-		<td>{{ game['points'] }}</td>
+		<td>{{ game.position }}</td>
+		<td>{{ game.hits }}</td>
+		<td>{{ game.points }}</td>
 	</tr>
 	{% end %}
 </table>
+{% end %}

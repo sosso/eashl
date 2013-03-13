@@ -41,9 +41,9 @@ class User(Base):
     
     def recent_game_history(self, limit=10):
         usergames = get_games_for_user(id=self.id, limit=limit)
-        points = 0
-        hits = 0
-        non_goalie_games = 0
+        points = 0.0
+        hits = 0.0
+        non_goalie_games = 0.0
         games_list = []
         for usergame in usergames:
             games_list.append(usergame[0])
@@ -53,8 +53,8 @@ class User(Base):
                 hits += usergame[0].hits
         ret_dict = {'username':self.username, 'games':games_list}
         if non_goalie_games > 0:
-            ret_dict['hpg'] = hits/non_goalie_games
-            ret_dict['ppg'] = points/non_goalie_games
+            ret_dict['hpg'] = float(hits/non_goalie_games)
+            ret_dict['ppg'] = float(points/non_goalie_games)
         else:
             ret_dict['hpg'] = 0.0
             ret_dict['ppg'] = 0.0

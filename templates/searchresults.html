@@ -1,30 +1,36 @@
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script>
-	$(document).ready(function() {
-		$('.search-btn').click(function(e) {
-			e.preventDefault();
-			$('#search-field').attr('name', $(this).data('field-name'));
-			$('#search-form').attr('action', $(this).data('action')).submit();
-		});
-	}); 
-</script>
+{% extends "_layout.html" %}
+{% block title %}Club Search{% end %}
+
+{% block scripts %}
+{% end %}
+
+{% block content %}
 <div>
 	<form id="search-form" action="" method="get" class="websearch">
-		<input id="search-field" type="text" class="searcher" name="" size="40"/>
-		<input type="hidden" name="find[platform]" value="PS3">
-		<input type="hidden" value="submit" name="do-search">
-		<input type="button" value="Search this site" class="search-btn" data-action="" data-field-name="abbr" />
-		<input type="button" value="Search EA" class="search-btn" data-action="http://www.easportsworld.com/en_US/clubs/nhl13/search" data-field-name="find[abbreviation]" />
+		<input id="search-field" type="text" class="searcher" name="abbr" size="40"/>
+		<input type="hidden" name="find[platform]" value="PS3"/>
+		<input type="hidden" value="submit" name="do-search"/>
+		<input type="submit" value="Search this site" />
 	</form>
-
 </div>
-
+{% if len(results) == 0 %}
+<h4>No Results Found</h4>
+{% else %}
 {% for result in results %}
-<img src="{{result['logo']}}"/>
-{{result['name']}}
-<br>
-<a href="/matchuphistory?club_2_id={{result['id']}}">Matchup History </a>
-<a href="/matchhistory?club_id={{result['id']}}">Recent games </a>
-<a href="/setactiveclub?id={{result['id']}}">Make this active club</a>
-<br>
+<div class="span2">
+	<h6 align="center">{{result['name']}}</h6>
+	<p><img src="{{result['logo']}}"/>
+	</p>
+	<p>
+		<a href="/matchuphistory?club_2_id={{result['id']}}">Matchup History </a>
+	</p>
+	<p>
+		<a href="/matchhistory?club_id={{result['id']}}">Recent games </a>
+	</p>
+	<p>
+		<a href="/setactiveclub?id={{result['id']}}">Make this active club</a>
+	</p>
+</div>
+{% end %}
+{% end %}
 {% end %}
