@@ -2,8 +2,7 @@
 {% block title %}Game History{% end %}
 
 {% block content %}
-<h2>Head to Head:	{{ history['Series'] }}</h4>
-<br>
+<h3>Head to Head:	{{ history['Series'] }}</h3>
 {% if history['Last Game'] is not None %} <img src="{{history['Last Game']['club_1_logo']}}"/> VS <img src="{{history['Last Game']['club_2_logo']}}"/>
 <div>
 	{{history['Last Game']['club_1_name']}}          vs           {{history['Last Game']['club_2_name']}}
@@ -15,12 +14,11 @@
 	</p>
 	<p>
 		Club 1 Division: {{history['Last Game']['club_1_rank']['division']}}
-	</p>
-	<p>
 		Club 1 Rank: {{history['Last Game']['club_1_rank']['rank']}}
 	</p>
 	<p>
-		Roster
+		Club 2 Division: {{history['Last Game']['club_2_rank']['division']}}
+		Club 2 Rank: {{history['Last Game']['club_2_rank']['rank']}}
 	</p>
 	<table border="1">
 		<tr>
@@ -38,23 +36,8 @@
 			<td>{{ player['points'] }}</td>
 		</tr>
 		{% end %}
-	</table>
-	<p>
-		Club 2 Division: {{history['Last Game']['club_2_rank']['division']}}
-	</p>
-	<p>
-		Club 2 Rank: {{history['Last Game']['club_2_rank']['rank']}}
-	</p>
-	<p>
-		Roster
-	</p>
-	<table border="1">
 		<tr>
-			<td>Name</td>
-			<td>Position</td>
-			<td>Hits</td>
-			<td>Points</td>
-
+			<td>Team 2</td><td></td><td></td><td></td>
 		</tr>
 		{% for player in history['Last Game']['club_2_roster'] %}
 		<tr>

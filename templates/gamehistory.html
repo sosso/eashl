@@ -3,8 +3,7 @@
 
 {% block content %}
 
-<h2>Record:	{{ result['record'] }}</h4>
-<br>
+<h3>Record:	{{ result['record'] }}</h3>
 {% for game in result['games'] %}
 <div>
 	<img src="{{game['club_1_logo']}}"/> VS <img src="{{game['club_2_logo']}}"/>
@@ -20,14 +19,12 @@
 	<div>
 		<p>
 			Club 1 Division: {{game['club_1_rank']['division']}}
-		</p>
-		<p>
 			Club 1 Rank: {{game['club_1_rank']['rank']}}
 		</p>
 		<p>
-			Roster
+			Club 2 Division: {{game['club_2_rank']['division']}}
+			Club 2 Rank: {{game['club_2_rank']['rank']}}
 		</p>
-
 		<table border="1">
 			<tr>
 				<td>Name</td>
@@ -43,24 +40,8 @@
 				<td>{{ player['points'] }}</td>
 			</tr>
 			{% end %}
-		</table>
-	</div>
-	<div>
-		<p>
-			Club 2 Division: {{game['club_2_rank']['division']}}
-		</p>
-		<p>
-			Club 2 Rank: {{game['club_2_rank']['rank']}}
-		</p>
-		<p>
-			Roster
-		</p>
-		<table border="1">
 			<tr>
-				<td>Name</td>
-				<td>Position</td>
-				<td>Hits</td>
-				<td>Points</td>
+				<td>Team 2</td><td></td><td></td><td></td>
 			</tr>
 			{% for player in game['club_2_roster'] %}
 			<tr>
