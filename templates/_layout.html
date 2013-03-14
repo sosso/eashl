@@ -62,19 +62,19 @@
 									<li>
 										<a href="/playerhistory"><i class="icon-user"></i> My Games</a>
 									</li>
-									{% end %}		
+									{% end %}
 									{% if club_id %}
 									<li>
 										<a href="/matchhistory"><i class="icon-user"></i> My Club</a>
 									</li>
-									{% end %}		
+									{% end %}
 								</ul>
 							</li>
 							{% end %}
-							
+
 							<!--<li class="divider-vertical"></li>
 							<li><a href="/login">Login</a></li>-->
-							
+
 						</ul>
 					</div><!--/.nav-collapse -->
 
@@ -82,13 +82,28 @@
 			</div>
 		</div>
 		<!-- End Navigation -->
-
 		<div class="container">
-			{% block content %}{% end %}
-
+			{% block content %}
+			{% end %}
 			<hr>
-		</div>
+			<footer>
+				<script type="text/javascript">
+					<!--
+					amazon_ad_tag ="eh0ab-20";
+					amazon_ad_width = "728";
+					amazon_ad_height = "90";
+					amazon_ad_link_target = "new";
+					//-->
+				</script>
+				<a href="/terms">Terms & Conditions</a>
+				<p>
+					&copy; {{ _("Anthony Sosso") }} 2013
+				</p>
 
+			</footer>
+
+			<script type="text/javascript" src="http://www.assoc-amazon.com/s/ads.js"></script>
+		</div>
 		<!-- JavaScript -->
 		{% if handler.settings['debug'] == False %}
 		<script src="http://code.jquery.com/jquery-latest.js"></script>

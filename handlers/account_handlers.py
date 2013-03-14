@@ -22,6 +22,10 @@ class HomeHandler(BaseHandler):
     def get(self):
         return self.render("index.html")
 
+class TermsHandler(BaseHandler):
+    def get(self):
+        return self.render("content/terms.html")
+
 class ImportGames(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
