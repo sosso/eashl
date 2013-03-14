@@ -15,6 +15,7 @@ class BaseHandler(tornado.web.RequestHandler):
         # add any variables we want available to all templates
         kwargs['player_id'] = self.get_cookie("player_id", None)
         kwargs['club_id'] = self.get_cookie("club_id", None)
+        kwargs['grouper'] = grouper
         super(BaseHandler, self).render(template, **kwargs)
 
 class HomeHandler(BaseHandler):
@@ -86,7 +87,7 @@ class PlayerHistory(BaseHandler):
             result_obj = {}
         finally:
             Session.remove()
-            self.render("playerhistory.html", history={'players':result_obj}, grouper=grouper)
+            self.render("playerhistory.html", history={'players':result_obj})
 #            self.finish(simplejson.dumps(result_obj))
 
 class StatsUpload(BaseHandler):

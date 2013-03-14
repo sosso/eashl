@@ -16,20 +16,26 @@
 {% if len(results) == 0 %}
 <h4>No Results Found</h4>
 {% else %}
-{% for result in results %}
-<div class="span4">
-	<h6 align="center">{{result['name']}}</h6>
-	<p><img src="{{result['logo']}}"/>
-	</p>
-	<p>
-		<a href="/matchuphistory?club_2_id={{result['id']}}">Matchup History </a>
-	</p>
-	<p>
-		<a href="/matchhistory?club_id={{result['id']}}">Recent games </a>
-	</p>
-	<p>
-		<a href="/setactiveclub?id={{result['id']}}">Make this active club</a>
-	</p>
+{% for row in grouper(6, results) %}
+<div class="row">
+	{% for res in row %}
+	{% if res is not None %}
+	<div class="span2">
+		<h6 align="center"></h6>
+		<p><img src="{{res['logo']}}"/>
+		</p>
+		<p>
+			<a href="/matchuphistory?club_2_id={{res['id']}}">Matchup History </a>
+		</p>
+		<p>
+			<a href="/matchhistory?club_id={{res['id']}}">Recent games </a>
+		</p>
+		<p>
+			<a href="/setactiveclub?id={{res['id']}}">Make this active club</a>
+		</p>
+	</div>
+	{% end %}
+	{% end %}
 </div>
 {% end %}
 {% end %}
