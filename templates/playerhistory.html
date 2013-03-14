@@ -9,6 +9,7 @@
 {% for row in grouper(6, history['players']) %}
 <div class="row">
 	{% for player in row %}
+	{% if player is not None %}
 	<div class="span2">
 		<a href="/setactiveplayer?player_id={{player['id']}}">Make this active player</a>
 		<p>
@@ -35,6 +36,7 @@
 			{% end %}
 		</table>
 	</div>
+	{% end %}
 	{% end %}
 </div>
 
