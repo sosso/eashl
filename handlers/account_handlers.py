@@ -28,11 +28,15 @@ class ImportGames(BaseHandler):
         logger = logging.getLogger('MatchupHistory')            
         ea_id = self.get_argument('ea_id') 
         try:
-            club = get_clubs(ea_id=ea_id)[0]
-            most_recent_game = club.get_games(1)[0]
-            dt = datetime.datetime.fromtimestamp(float(most_recent_game.ea_page_timestamp))
-            days_from_start = (dt - datetime.datetime.fromtimestamp(float(earliest_timestamp))).days - 1
-            import_games(club.ea_id, days_from_start, 0)
+            club = get_clubs(ea_id=ea_id)
+            if len(club) == 0:
+                import_games(ea_id, 0, 0)
+            else:
+                club = club[0]
+                most_recent_game = club.get_games(1)[0]
+                dt = datetime.datetime.fromtimestamp(float(most_recent_game.ea_page_timestamp))
+                days_from_start = (dt - datetime.datetime.fromtimestamp(float(earliest_timestamp))).days - 1
+                import_games(club.ea_id, days_from_start, 0)
             result_str = 'success'
         except Exception, e:
             logger.exception(e)
@@ -72,15 +76,14 @@ class PlayerHistory(BaseHandler):
         except:
             userids = []
         try:
-            if len(userids) > 0:
+            if userids is not None and len(userids) > 0:
                 result_obj = [get_player(player_id).recent_game_history(limit=25) for player_id in userids]
             else:
                 if player_id is None:
                     player_id = self.get_cookie("player_id") 
                 else:
                     player_id = self.get_argument('player_id')
-                
-                    result_obj = [get_player(player_id).recent_game_history(limit=25)]
+                result_obj = [get_player(player_id).recent_game_history(limit=25)]
         except Exception, e:
             logger.exception(e)
             Session().rollback()
