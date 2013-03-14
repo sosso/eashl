@@ -3,9 +3,9 @@
 
 {% block content %}
 
-<h3>Record:	{{ result['record'] }}</h3>
+<h3 align="center">Record:	{{ result['record'] }}</h3>
 {% for game in result['games'] %}
-<div>
+<div align="center">
 	<img src="{{game['club_1_logo']}}"/> VS <img src="{{game['club_2_logo']}}"/>
 	<p>
 		{{game['club_1_name']}} vs {{game['club_2_name']}}
@@ -18,12 +18,10 @@
 	</p>
 	<div>
 		<p>
-			Club 1 Division: {{game['club_1_rank']['division']}}
-			Club 1 Rank: {{game['club_1_rank']['rank']}}
+			Club 1 Rank: {{game['club_1_rank']['rank']}} {{game['club_1_rank']['division']}}
 		</p>
 		<p>
-			Club 2 Division: {{game['club_2_rank']['division']}}
-			Club 2 Rank: {{game['club_2_rank']['rank']}}
+			Club 2 Rank: {{game['club_2_rank']['rank']}} {{game['club_2_rank']['division']}}
 		</p>
 		<table border="1">
 			<tr>
@@ -37,7 +35,7 @@
 				{% for player_index, player in enumerate(game['club_1_roster']) %}
 				<tr>
 					<td>
-					<input name="userids" type="checkbox" value="{{player['id']}}">
+					<input align="center" name="userids" type="checkbox" value="{{player['id']}}">
 					</td>
 					<td><a href="/playerhistory?player_id={{player['id']}}">{{ player['username'] }}</a></td>
 					<td>{{ player['position'] }}</td>
