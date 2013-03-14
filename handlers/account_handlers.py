@@ -9,12 +9,18 @@ import simplejson
 import tornado.web
 
 
-class HomeHandler(tornado.web.RequestHandler):
+class BaseHandler(tornado.web.RequestHandler):
+    def render(self, template, **kwargs):
+        # add any variables we want available to all templates
+        kwargs['player_id'] = self.get_cookie("player_id", None)
+        kwargs['club_id'] = self.get_cookie("club_id", None)
+        super(BaseHandler, self).render(template, **kwargs)
+
+class HomeHandler(BaseHandler):
     def get(self):
         return self.render("index.html")
 
-
-class ImportGames(tornado.web.RequestHandler):
+class ImportGames(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
         logger = logging.getLogger('MatchupHistory')            
@@ -35,7 +41,7 @@ class ImportGames(tornado.web.RequestHandler):
             self.finish(result_str)
 
 
-class MatchupHistory(tornado.web.RequestHandler):
+class MatchupHistory(BaseHandler):
     def get(self):
         logger = logging.getLogger('MatchupHistory')
         if "club_id" in self.cookies:
@@ -55,7 +61,7 @@ class MatchupHistory(tornado.web.RequestHandler):
             self.render("matchuphistory.html", history=result_obj)
 #            self.finish(simplejson.dumps(result_obj))
 
-class PlayerHistory(tornado.web.RequestHandler):
+class PlayerHistory(BaseHandler):
     def get(self):
         logger = logging.getLogger('PlayerHistory')
         player_id = self.get_argument('player_id', None)
@@ -74,7 +80,7 @@ class PlayerHistory(tornado.web.RequestHandler):
             self.render("playerhistory.html", history=result_obj)
 #            self.finish(simplejson.dumps(result_obj))
 
-class StatsUpload(tornado.web.RequestHandler):
+class StatsUpload(BaseHandler):
     def get(self):
         self.render("gamestats.html", game=None)
     def post(self):
@@ -82,7 +88,7 @@ class StatsUpload(tornado.web.RequestHandler):
         result = get_stats(image_url)
         self.render("gamestats.html", game={'team_stats':result})
 
-class MatchHistory(tornado.web.RequestHandler):
+class MatchHistory(BaseHandler):
     def get(self):
         logger = logging.getLogger('MatchupHistory')
         club_id = self.get_argument('club_id', None)
@@ -101,7 +107,7 @@ class MatchHistory(tornado.web.RequestHandler):
             Session.remove()
             self.render("gamehistory.html", result=result_obj)
             
-class ClubSearch(tornado.web.RequestHandler):
+class ClubSearch(BaseHandler):
     def get(self):
         logger = logging.getLogger('ClubSearch')
         id = self.get_argument('id', None)
@@ -118,17 +124,30 @@ class ClubSearch(tornado.web.RequestHandler):
             self.render("searchresults.html", results=result_obj)
 #            self.finish(simplejson.dumps(result_obj))
 
-class SetActiveClub(tornado.web.RequestHandler):
+class SetActiveClub(BaseHandler):
     def get(self):
         logger = logging.getLogger('SetActiveClub')
         club_id = self.get_argument('id', None)        
         try:
             expires = datetime.datetime.utcnow() + datetime.timedelta(days=365)
             self.set_cookie("club_id", value=club_id, expires=expires)
-            return
         except Exception, e:
             logger.exception(e)
             Session().rollback()
         finally:
             Session.remove()
             self.render("activeclubsuccess.html")
+
+class SetActivePlayer(BaseHandler):
+    def get(self):
+        logger = logging.getLogger('SetActiveClub')
+        player_id = self.get_argument('player_id')        
+        try:
+            expires = datetime.datetime.utcnow() + datetime.timedelta(days=365)
+            self.set_cookie("player_id", value=player_id, expires=expires)
+        except Exception, e:
+            logger.exception(e)
+            Session().rollback()
+        finally:
+            Session.remove()
+            self.render("activeplayersuccess.html")

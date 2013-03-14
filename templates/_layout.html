@@ -51,40 +51,30 @@
 					<div class="nav-collapse collapse">
 						<ul class="nav pull-right">
 							<li class="divider-vertical"></li>
-							{% if handler.current_user %}
-							<li>
-								<a href="#"><i class="icon-search icon-large"></i></a>
-							</li>
-							<li class="divider-vertical"></li>
-							<li>
-								<a href="#"><i class="icon-facetime-video icon-large"></i></a>
-							</li>
-							<li class="divider-vertical"></li>
-							<li>
-								<a href="#"><i class="icon-envelope icon-large"></i> <span class="badge badge-important">3</span></a>
-							</li>
-							<li class="divider-vertical"></li>
-							<li class="dropdown">
-								<a class="dropdown-toggle" data-toggle="dropdown" href="#"> <i class="icon-user icon-large"></i> {{ handler.current_user.screen_name }} <b class="caret"></b> </a>
-								<ul class="dropdown-menu">
-									<li>
-										<a href="/register"><i class="icon-user"></i> My Profile</a>
-									</li>
-									<li>
-										<a href="/login"><i class="icon-cog"></i> Settings</a>
-									</li>
-									<li>
-										<a href="/logout"><i class="icon-lock"></i> Log Out</a>
-									</li>
-								</ul>
-							</li>
-							{% else %}
 							<li>
 								<a href="/clubsearch">Club Search</a>
 							</li>
+							{% if player_id  or club_id %}
+							<li class="dropdown">
+								<a class="dropdown-toggle" data-toggle="dropdown" href="#"> <i class="icon-user icon-large"></i> My Pages <b class="caret"></b> </a>
+								<ul class="dropdown-menu">
+									{% if player_id %}
+									<li>
+										<a href="/playerhistory"><i class="icon-user"></i> My Games</a>
+									</li>
+									{% end %}		
+									{% if club_id %}
+									<li>
+										<a href="/matchhistory"><i class="icon-user"></i> My Club</a>
+									</li>
+									{% end %}		
+								</ul>
+							</li>
+							{% end %}
+							
 							<!--<li class="divider-vertical"></li>
 							<li><a href="/login">Login</a></li>-->
-							{% end %}
+							
 						</ul>
 					</div><!--/.nav-collapse -->
 

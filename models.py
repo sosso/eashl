@@ -51,10 +51,10 @@ class User(Base):
                 non_goalie_games += 1
                 points += usergame[0].points
                 hits += usergame[0].hits
-        ret_dict = {'username':self.username, 'games':games_list}
+        ret_dict = {'username':self.username, 'games':games_list, 'id':self.id}
         if non_goalie_games > 0:
-            ret_dict['hpg'] = float(hits/non_goalie_games)
-            ret_dict['ppg'] = float(points/non_goalie_games)
+            ret_dict['hpg'] = float(hits / non_goalie_games)
+            ret_dict['ppg'] = float(points / non_goalie_games)
         else:
             ret_dict['hpg'] = 0.0
             ret_dict['ppg'] = 0.0

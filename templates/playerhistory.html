@@ -5,6 +5,8 @@
 {% end %}
 
 {% block content %}
+<a href="/setactiveplayer?player_id={{history['id']}}">Make this active player</a>
+<br>
 <p>
 	Last {{len(history['games'])}} games for {{history['username']}}
 </p>
