@@ -27,31 +27,42 @@
 		</p>
 		<table border="1">
 			<tr>
+				<td>Team 1</td>
 				<td>Name</td>
 				<td>Position</td>
 				<td>Hits</td>
 				<td>Points</td>
 			</tr>
-			{% for player in game['club_1_roster'] %}
-			<tr>
-				<td><a href="/playerhistory?player_id={{player['id']}}">{{ player['username'] }}</a></td>
-				<td>{{ player['position'] }}</td>
-				<td>{{ player['hits'] }}</td>
-				<td>{{ player['points'] }}</td>
-			</tr>
-			{% end %}
-			<tr>
-				<td>Team 2</td><td></td><td></td><td></td>
-			</tr>
-			{% for player in game['club_2_roster'] %}
-			<tr>
-				<td><a href="/playerhistory?player_id={{player['id']}}">{{ player['username'] }}</a></td>
-				<td>{{ player['position'] }}</td>
-				<td>{{ player['hits'] }}</td>
-				<td>{{ player['points'] }}</td>
-			</tr>
-			{% end %}
+			<form name="input" action="playerhistory" method="get">
+				{% for player_index, player in enumerate(game['club_1_roster']) %}
+				<tr>
+					<td>
+					<input name="userids" type="checkbox" value="{{player['id']}}">
+					</td>
+					<td><a href="/playerhistory?player_id={{player['id']}}">{{ player['username'] }}</a></td>
+					<td>{{ player['position'] }}</td>
+					<td>{{ player['hits'] }}</td>
+					<td>{{ player['points'] }}</td>
+				</tr>
+				{% end %}
+				<tr>
+					<td>Team 2</td><td></td><td></td><td></td><td></td>
+				</tr>
+				{% for player in game['club_2_roster'] %}
+				<tr>
+					<td>
+					<input name="{{player['id']}}" type="checkbox" value="0">
+					</td>
+					<td><a href="/playerhistory?player_id={{player['id']}}">{{ player['username'] }}</a></td>
+					<td>{{ player['position'] }}</td>
+					<td>{{ player['hits'] }}</td>
+					<td>{{ player['points'] }}</td>
+				</tr>
+				{% end %}
+				<input type="submit" value="Compare">
+			</form>
 		</table>
 	</div>
-</div> {% end %}
+</div>
+{% end %}
 {% end %} 

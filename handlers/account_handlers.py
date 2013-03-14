@@ -2,6 +2,7 @@ from gamelistscraper import earliest_timestamp, import_games
 from models import Session, Club, get_games_between, get_clubs, \
     get_matchup_history, get_match_history, get_player
 from statsprocessor import get_stats
+from utils import grouper
 import datetime
 import logging
 import requests
@@ -65,19 +66,27 @@ class PlayerHistory(BaseHandler):
     def get(self):
         logger = logging.getLogger('PlayerHistory')
         player_id = self.get_argument('player_id', None)
-        if player_id is None:
-            player_id = self.get_cookie("player_id") 
-        else:
-            player_id = self.get_argument('player_id')
         try:
-            result_obj = get_player(player_id).recent_game_history(limit=25)
+            userids = self.request.arguments.get("userids")
+        except:
+            userids = []
+        try:
+            if len(userids) > 0:
+                result_obj = [get_player(player_id).recent_game_history(limit=25) for player_id in userids]
+            else:
+                if player_id is None:
+                    player_id = self.get_cookie("player_id") 
+                else:
+                    player_id = self.get_argument('player_id')
+                
+                    result_obj = [get_player(player_id).recent_game_history(limit=25)]
         except Exception, e:
             logger.exception(e)
             Session().rollback()
             result_obj = {}
         finally:
             Session.remove()
-            self.render("playerhistory.html", history=result_obj)
+            self.render("playerhistory.html", history={'players':result_obj}, grouper=grouper)
 #            self.finish(simplejson.dumps(result_obj))
 
 class StatsUpload(BaseHandler):

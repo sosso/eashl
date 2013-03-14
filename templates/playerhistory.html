@@ -5,30 +5,38 @@
 {% end %}
 
 {% block content %}
-<a href="/setactiveplayer?player_id={{history['id']}}">Make this active player</a>
-<br>
-<p>
-	Last {{len(history['games'])}} games for {{history['username']}}
-</p>
-<p>
-	Points per game: {{history['ppg']}}
-</p>
-<p>
-	Hits per game: {{history['hpg']}}
-</p>
-<br>
-<table border="1">
-	<tr>
-		<td>Position</td>
-		<td>Hits</td>
-		<td>Points</td>
-	</tr>
-	{% for game in history['games'] %}
-	<tr>
-		<td>{{ game.position }}</td>
-		<td>{{ game.hits }}</td>
-		<td>{{ game.points }}</td>
-	</tr>
+
+{% for row in grouper(6, history['players']) %}
+<div class="row">
+	{% for player in row %}
+	<div class="span2">
+		<a href="/setactiveplayer?player_id={{player['id']}}">Make this active player</a>
+		<p>
+			Last {{len(player['games'])}} games for {{player['username']}}
+		</p>
+		<p>
+			Points per game: {{player['ppg']}}
+		</p>
+		<p>
+			Hits per game: {{player['hpg']}}
+		</p>
+		<table border="1">
+			<tr>
+				<td>Position</td>
+				<td>Hits</td>
+				<td>Points</td>
+			</tr>
+			{% for game in player['games'] %}
+			<tr>
+				<td>{{ game.position }}</td>
+				<td>{{ game.hits }}</td>
+				<td>{{ game.points }}</td>
+			</tr>
+			{% end %}
+		</table>
+	</div>
 	{% end %}
-</table>
+</div>
+
+{% end %}
 {% end %}
