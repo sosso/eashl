@@ -1,5 +1,7 @@
 from bs4 import BeautifulSoup
 from dbutils import get_or_create
+from import_constants import DELETED_CLUB_NAME, player_positions, \
+    earliest_timestamp
 from models import Session, Game, Club, UserGame
 import datetime
 import logging
@@ -7,11 +9,7 @@ import requests
 import simplejson
 import time
 
-player_positions = {'0':'G', '1':'D', '3':'LW', '4':'C', '5':'RW'}
-clubpage_url = 'https://dl.dropbox.com/u/6996716/clubpage.htm'
-match_detail_url = 'https://dl.dropbox.com/u/6996716/gamepage.htm'
-earliest_timestamp = 1347422400
-DELETED_CLUB_NAME = 'XX DELETED XX'
+
 
 def get_team_names(game):
     try:
@@ -144,53 +142,60 @@ def import_games(ea_club_id, days_from_start=0, days_from_end=0):
                 break
             dt_stamp = str(time.mktime(dt.timetuple()))[:-2]#trim '.0' from end
             timeshifted_url = 'http://www.easportsworld.com/en_US/clubs/partial/401A0001/%s/match-results?timestamp=%s' % (str(ea_club_id), dt_stamp) 
-            clubpage_soup = get_clubpage_soup(timeshifted_url) 
-            games_list = clubpage_soup.find_all('table', {'class':"full-width plain simple-results-table no-margin fixed-layout-table"})
-            logger.debug('Found %d games on %s for %s' % (len(games_list), dt.strftime("%Y-%m-%d"), ea_club_id))
+            games_list = get_games_list(timeshifted_url)
             for game in games_list:
-                left_team_id, right_team_id = get_team_ids(game)
+                process_game(game)
                 
-                left_team_names, right_team_names = get_team_names(game)
-                game_info = get_game_info(game, left_team_id)
-                left_logo, right_logo = get_logos(game, left_team_names[0], right_team_names[0])
-                logger.debug('game processing: %s' % simplejson.dumps(game_info))
-                if len(Session().query(Game).filter_by(ea_id=game_info['id']).all()) == 0:  # new game
-                    
-                    left_club = get_or_create(Session(), Club, ea_id=left_team_id, name=left_team_names[0], abbr=left_team_names[1])
-                    right_club = get_or_create(Session(), Club, ea_id=right_team_id, name=right_team_names[0], abbr=right_team_names[1])
-                    logger.info('New Game: %s vs %s' %(left_club.name, right_club.name))
-                    left_club.update_logo(left_logo)
-                    right_club.update_logo(right_logo)
-                    game = get_or_create(Session(), Game, \
-                                          ea_id=game_info['id'], club_1_id=left_club.id, \
-                                          club_1_score=game_info['score'][0], \
-                                          club_2_id=right_club.id, club_2_score=game_info['score'][1],\
-                                          time=game_info['time'], ea_page_timestamp=dt_stamp)
-                    ranks = [get_rank_info(club) for club in [left_club, right_club]]
-                    game.update_rank_info(ranks)
-                    match_detail_html = requests.get(game_info['url']).content
-                    match_detail_soup = BeautifulSoup(match_detail_html)
-                    try:    
-                        left_team_stats, right_team_stats = get_team_stats(match_detail_soup)
-                    except ValueError:
-                        continue
-                    session = Session()
-                    for player in left_team_stats:
-                        usergame= UserGame(username=player['player_name'], game_id=game.id, \
-                                          club_id=left_club.id, position=player['Position'], points=player['Points'], \
-                                          hits=player['Total Number of Hits'])
-                        session.add(usergame)
-                        session.flush()
-                        session.commit()
-                    for player in right_team_stats:
-                        usergame = UserGame(username=player['player_name'], game_id=game.id, \
-                                              club_id=right_club.id, position=player['Position'], points=player['Points'], \
-                                              hits=player['Total Number of Hits'])
-                        session.add(usergame)
-                        session.flush()
-                        session.commit()
-                else:
-                    logger.debug('Game already processed')
         except Exception as e:
                 logger.exception(e)
-#get_club_stats('http://www.easportsworld.com/en_US/clubs/401A0001/273/overview')
+
+def get_games_list(url):
+    logger = logging.getLogger('get_games_list')
+    clubpage_soup = get_clubpage_soup(url) 
+    games_list = clubpage_soup.find_all('table', {'class':"full-width plain simple-results-table no-margin fixed-layout-table"})
+#    logger.debug('Found %d games on %s for %s' % (len(games_list), dt.strftime("%Y-%m-%d"), ea_club_id))
+    return games_list
+
+def process_game(game, dt_stamp, session):
+    logger = logging.getLogger('process_game')
+    left_team_id, right_team_id = get_team_ids(game)
+    left_team_names, right_team_names = get_team_names(game)
+    game_info = get_game_info(game, left_team_id)
+    left_logo, right_logo = get_logos(game, left_team_names[0], right_team_names[0])
+    logger.debug('game processing: %s' % simplejson.dumps(game_info))
+    if len(session.query(Game).filter_by(ea_id=game_info['id']).all()) == 0:  # new game
+        left_club = get_or_create(session, Club, False, ea_id=left_team_id, name=left_team_names[0], abbr=left_team_names[1])
+        right_club = get_or_create(session, Club, False, ea_id=right_team_id, name=right_team_names[0], abbr=right_team_names[1])
+        logger.info('New Game: %s vs %s' %(left_club.name, right_club.name))
+        left_club.update_logo(left_logo)
+        right_club.update_logo(right_logo)
+        game = get_or_create(session, Game, \
+                              ea_id=game_info['id'], club_1_id=left_club.id, \
+                              club_1_score=game_info['score'][0], \
+                              club_2_id=right_club.id, club_2_score=game_info['score'][1],\
+                              time=game_info['time'], ea_page_timestamp=dt_stamp)
+        ranks = [get_rank_info(club) for club in [left_club, right_club]]
+        game.update_rank_info(ranks)
+        match_detail_html = requests.get(game_info['url']).content
+        match_detail_soup = BeautifulSoup(match_detail_html)
+        try:    
+            left_team_stats, right_team_stats = get_team_stats(match_detail_soup)
+        except ValueError:
+            return
+        try:
+            for player in left_team_stats:
+                usergame= UserGame(username=player['player_name'], game_id=game.id, \
+                                  club_id=left_club.id, position=player['Position'], points=player['Points'], \
+                                  hits=player['Total Number of Hits'])
+                session.add(usergame)
+                session.flush()
+            for player in right_team_stats:
+                usergame = UserGame(username=player['player_name'], game_id=game.id, \
+                                      club_id=right_club.id, position=player['Position'], points=player['Points'], \
+                                      hits=player['Total Number of Hits'])
+                session.add(usergame)
+                session.flush()
+        except Exception as e:
+            pass
+    else:
+        logger.debug('Game already processed')

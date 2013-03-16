@@ -4,7 +4,7 @@ from sqlalchemy.sql.expression import ClauseElement
 
 #logger = logging.getLogger('dbutils')
 
-def get_or_create(session, model, **kwargs):
+def get_or_create(session, model, commit=True, **kwargs):
     instance = session.query(model).filter_by(**kwargs).first()
     if instance:
         return instance
@@ -13,7 +13,8 @@ def get_or_create(session, model, **kwargs):
         instance = model(**params)
         session.add(instance)
         session.flush()
-        session.commit()
+        if commit:
+            session.commit()
         return instance
 
 @event.listens_for(Pool, "checkout")
