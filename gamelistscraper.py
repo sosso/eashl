@@ -108,9 +108,9 @@ def get_clubpage_soup(url):
     clubpage_html = requests.get(url).content
     return BeautifulSoup(clubpage_html)
 
-def get_rank_info(club):
+def get_rank_info(club, ignore_time=False):
     try:
-        if club.should_update():
+        if club.should_update(ignore_time):
             url = 'http://www.easportsworld.com/en_US/clubs/401A0001/%s/overview' % str(club.ea_id)
             soup = BeautifulSoup(requests.get(url).content)
             stats = soup.find('table', {'class':'plain full-width nowrap less-padding no-margin'})
@@ -180,7 +180,7 @@ def process_game(game, dt_stamp, session):
         match_detail_soup = BeautifulSoup(match_detail_html)
         try:    
             left_team_stats, right_team_stats = get_team_stats(match_detail_soup)
-        except ValueError:
+        except ValueError as e:
             return
         try:
             for player in left_team_stats:
@@ -196,6 +196,7 @@ def process_game(game, dt_stamp, session):
                 session.add(usergame)
                 session.flush()
         except Exception as e:
-            pass
+            session.rollback()
+            logger.exception(e)
     else:
         logger.debug('Game already processed')

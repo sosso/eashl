@@ -17,9 +17,9 @@ import os
 # if os.environ.get('TEST_RUN', "False") == "True":
 #    engine = create_engine('mysql://anthony:password@127.0.0.1:3306/test_assassins', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
 if os.environ.get('TEST_RUN', "False") == "True":
-    engine = create_engine('mysql://anthony:password@127.0.0.1:3306/eashlhistory2', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
+    engine = create_engine('mysql://anthony:password@127.0.0.1:3306/eashlhistory2', echo=False, pool_recycle=3600, pool_size=30, max_overflow=0)  # recycle connection every hour to prevent overnight disconnect)
 else:
-    engine = create_engine('mysql://b2970bc5c51ab9:96b6d5d8@us-cdbr-east-03.cleardb.com/heroku_ee20403d72a96df', echo=False, pool_recycle=3600)  # recycle connection every hour to prevent overnight disconnect)
+    engine = create_engine('mysql://b2970bc5c51ab9:96b6d5d8@us-cdbr-east-03.cleardb.com/heroku_ee20403d72a96df', echo=False, pool_recycle=3600, pool_size=30, max_overflow=0)  # recycle connection every hour to prevent overnight disconnect)
     
     
 Base = declarative_base(bind=engine)
@@ -92,7 +92,7 @@ class Game(Base):
         self.time = time
         self.ea_page_timestamp = ea_page_timestamp
         
-    def update_rank_info(self, rank_info_list):
+    def update_rank_info(self, rank_info_list, session=None):
         self.club_1_div_rank = rank_info_list[0]['div_rank']
         self.club_1_division = rank_info_list[0]['division']
         self.club_1_members = rank_info_list[0]['members']
@@ -103,10 +103,11 @@ class Game(Base):
         self.club_2_members = rank_info_list[1]['members']
         self.club_2_overall_rank = rank_info_list[1]['overall_rank']
         self.club_2_record = rank_info_list[1]['record']
-        s = object_session(self)
-        s.add(self)
-        s.flush()
-        s.commit()
+        if session is None:
+            session=object_session(self)
+        session.add(self)
+        session.flush()
+        session.commit()
     
     def game_date(self):
         if self.ea_page_timestamp is None:
@@ -147,10 +148,12 @@ class Game(Base):
         ret_dict['club_1_name'] = self.club_1.name
         ret_dict['club_1_logo'] = self.club_1.logo
         ret_dict['club_1_roster'] = [usergame.info() for usergame in self.club_1_usergames]
+        ret_dict['club_1_ea_id'] = self.club_1.ea_id
         
         ret_dict['club_2_roster'] = [usergame.info() for usergame in self.club_2_usergames]
         ret_dict['club_2_name'] = self.club_2.name
         ret_dict['club_2_logo'] = self.club_2.logo
+        ret_dict['club_2_ea_id'] = self.club_2.ea_id
         if self.ea_page_timestamp is not None:
             ret_dict['date'] = datetime.datetime.fromtimestamp(int(self.ea_page_timestamp)).strftime("%Y-%m-%d")
         else:
@@ -172,12 +175,19 @@ class Club(Base):
         self.abbr = abbr
         self.logo = logo
     
-    def should_update(self, timestamp=None):
+    def should_update(self, timestamp=None, ignore_time=False):
         if self.last_rank_fetch is None:
             return True
-        if timestamp is None:
-            timestamp = datetime.datetime.now()
-        return (timestamp - datetime.timedelta(minutes=20)) > self.last_rank_fetch
+        info = self.most_recent_rank_info()
+        for kw in ['div_rank', 'division', 'record']:
+            if kw not in info or info[kw] is None or info[kw] == -1 or info[kw] == '':
+                return True
+        if ignore_time:
+            return False
+        else:
+            if timestamp is None:
+                timestamp = datetime.datetime.now()
+            return (timestamp - datetime.timedelta(minutes=20)) > self.last_rank_fetch
     
     def get_games(self, limit=10):
         return object_session(self).query(Game).filter(or_(Game.club_1_id == self.id, Game.club_2_id == self.id)).order_by(desc(Game.ea_id)).limit(limit).all()
@@ -252,8 +262,11 @@ def get_games_for_user(id, limit=None):
         q = q.limit(limit)
     return q.all() 
 
-def get_clubs(id=None, abbr=None, ea_id=None):
-    q = Session.query(Club)
+def get_clubs(id=None, abbr=None, ea_id=None, session=None):
+    if session is not None:
+        q = session.query(Club)
+    else:
+        q = Session.query(Club)
     if id is not None:
         q = q.filter(Club.id == id)
     if abbr is not None:

@@ -1,6 +1,7 @@
 from gamelistscraper import get_games_list, process_game
 from import_constants import earliest_timestamp
-from models import Session
+from models import Session, sm
+from sqlalchemy.orm.scoping import scoped_session
 from sqlalchemy.testing.plugin.noseplugin import logging
 import Queue
 import datetime
@@ -11,14 +12,16 @@ import time
 queue = Queue.Queue()
 out_list = []
 threads = []
-THREAD_COUNT = 20
+THREAD_COUNT = 30
+processed_count = 0
 
 class ThreadURL(threading.Thread):
-    def __init__(self, q, club_id, session):
+    def __init__(self, q, club_id, processed_count):
         threading.Thread.__init__(self)
         self.queue = q
         self.club_id = club_id
-        self.session = session
+        self.session = scoped_session(sm)
+        self.processed_count = processed_count
 
     def run(self):
         while True:
@@ -39,13 +42,17 @@ class ThreadURL(threading.Thread):
                         logger.exception(e)
             except Exception as e:
                 print('Job failed for %d', day)
+            self.session.commit()
+            self.session.close()
             self.queue.task_done()
+            self.processed_count += 1
             
 def bulk_grabber(club_id):
+    start = time.clock()
     session = Session()
     if len(threads) != THREAD_COUNT:
         for i in range(THREAD_COUNT):
-            t = ThreadURL(queue, club_id, session)
+            t = ThreadURL(queue, club_id, processed_count)
             t.setDaemon(True)
             t.start()
             threads.append(t)
@@ -55,6 +62,8 @@ def bulk_grabber(club_id):
         queue.put(day)
 
     queue.join()
+    end = time.clock()
+    print "Total time: %d" % end
     session.commit()
 
-bulk_grabber('26225')
+bulk_grabber('72305')
