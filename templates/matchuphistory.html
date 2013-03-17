@@ -4,7 +4,7 @@
 {% block content %}
 <h3>Head to Head:	{{ history['Series'] }}</h3>
 {% if history['Last Game'] is not None %}
-<a href="http://www.easportsworld.com/en_US/clubs/401A0001/{{history['Last Game']['club_1_ea_id']}}"> <img src="{{history['Last Game']['club_1_logo']}}"/> </a>VS <a href="http://www.easportsworld.com/en_US/clubs/401A0001/{{history['Last Game']['club_2_ea_id']}}"> <img src="{{history['Last Game']['club_2_logo']}}"/> </a>
+<a href="http://www.easportsworld.com/en_US/clubs/401A0001/{{history['Last Game']['club_1_ea_id']}}" target="_blank"> <img src="{{history['Last Game']['club_1_logo']}}"/> </a>VS <a href="http://www.easportsworld.com/en_US/clubs/401A0001/{{history['Last Game']['club_2_ea_id']}}" target="_blank"> <img src="{{history['Last Game']['club_2_logo']}}"/> </a>
 <div>
 	{{history['Last Game']['club_1_name']}}          vs           {{history['Last Game']['club_2_name']}}
 	<p>

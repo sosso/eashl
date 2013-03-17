@@ -6,8 +6,8 @@
 <h3 align="center">Record:	{{ result['record'] }}</h3>
 {% for game in result['games'] %}
 <div align="center">
-	<a href="http://www.easportsworld.com/en_US/clubs/401A0001/{{game['club_1_ea_id']}}"> <img src="{{game['club_1_logo']}}"/> </a>
-	VS <a href="http://www.easportsworld.com/en_US/clubs/401A0001/{{game['club_2_ea_id']}}"> <img src="{{game['club_2_logo']}}"/> </a>
+	<a href="http://www.easportsworld.com/en_US/clubs/401A0001/{{game['club_1_ea_id']}}"target="_blank"> <img src="{{game['club_1_logo']}}"/> </a>
+	VS <a href="http://www.easportsworld.com/en_US/clubs/401A0001/{{game['club_2_ea_id']}}"target="_blank"> <img src="{{game['club_2_logo']}}"/> </a>
 	<p>
 		{{game['club_1_name']}} vs {{game['club_2_name']}}
 	</p>
