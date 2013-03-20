@@ -8,7 +8,7 @@ import logging
 import requests
 import simplejson
 import tornado.web
-
+import urllib
 
 class BaseHandler(tornado.web.RequestHandler):
     def render(self, template, **kwargs):
@@ -135,10 +135,14 @@ class ClubSearch(BaseHandler):
         except Exception, e:
             logger.exception(e)
             Session().rollback()
-            result_obj = None
+            result_obj = {}
         finally:
             Session.remove()
-            self.render("searchresults.html", results=result_obj)
+            if abbr is not None:
+                ea_url = 'http://www.easportsworld.com/en_US/clubs/nhl13/search?find%5Babbreviation%5D=' + abbr + '&find%5Blang%5D=en&' + urllib.urlencode({'find[platform]':'PS3'}) + "&do-search=submit" 
+            else:
+                ea_url = None
+            self.render("searchresults.html", results=result_obj, abbreviation=abbr, ea_url=ea_url)
 #            self.finish(simplejson.dumps(result_obj))
 
 class SetActiveClub(BaseHandler):

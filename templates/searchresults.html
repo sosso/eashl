@@ -15,6 +15,9 @@
 </div>
 {% if len(results) == 0 %}
 <h4>No Results Found</h4>
+<br>
+{{ea_url}}
+<a href="{{ea_url}}">Search EA</a>
 {% else %}
 {% for row in grouper(6, results) %}
 <div class="row">

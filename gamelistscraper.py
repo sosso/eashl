@@ -144,7 +144,7 @@ def import_games(ea_club_id, days_from_start=0, days_from_end=0):
             timeshifted_url = 'http://www.easportsworld.com/en_US/clubs/partial/401A0001/%s/match-results?timestamp=%s' % (str(ea_club_id), dt_stamp) 
             games_list = get_games_list(timeshifted_url)
             for game in games_list:
-                process_game(game)
+                process_game(game, dt_stamp, Session())
                 
         except Exception as e:
                 logger.exception(e)
